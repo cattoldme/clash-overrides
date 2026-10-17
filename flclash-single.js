@@ -22,7 +22,6 @@ const BT_PROCESSES = [
   "uTorrent", "uTorrent.exe", "BitComet", "BitComet.exe", "BitComet_x64.exe",
 ];
 const TEST_URL = "https://cp.cloudflare.com/generate_204";
-const GOOGLE_TEST_URL = "https://www.google.com/generate_204";
 const GROUP = {
   Proxies: "🚀 Proxies",
   AI: "🤖 AI",
@@ -63,6 +62,7 @@ const BLACKMATRIX7_RULESETS = [
   "Niconico",
   "TVer",
   "YouTube",
+  "AmazonPrimeVideo",
   "Netflix",
   "Disney",
   "HBO",
@@ -231,6 +231,7 @@ function buildRules(japanTarget) {
     "GEOSITE,apple-cn,DIRECT",
     "GEOSITE,category-games@cn,DIRECT",
     ruleSet("YouTube", GROUP.YouTube),
+    ruleSet("AmazonPrimeVideo", GROUP.Streaming),
     ruleSet("Netflix", GROUP.Streaming),
     ruleSet("Disney", GROUP.Streaming),
     ruleSet("HBO", GROUP.Streaming),
@@ -371,9 +372,7 @@ function main(config) {
     group(GROUP.Streaming, "select", existing(byCountryGroups, ["SG", "US", "HK", "JP", "TW"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
     group(GROUP.YouTube, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Telegram, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
-    // Google availability differs from generic connectivity on some nodes.
-    // Test raw nodes against Google itself instead of the generic test endpoint.
-    group(GROUP.Google, "url-test", autoNodes, 300, 60, GOOGLE_TEST_URL),
+    group(GROUP.Google, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.GitHub, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "JP", "SG", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual, "DIRECT"])),
     group(GROUP.Steam, "select", [GROUP.Proxies, "DIRECT"].concat(existing(byCountryGroups, ["HK", "JP", "US", "SG"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Bilibili, "select", ["DIRECT"].concat(existing(byCountryGroups, ["TW", "HK"]).map((code) => byCountryGroups[code]), [GROUP.Proxies])),

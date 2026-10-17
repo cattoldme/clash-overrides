@@ -17,7 +17,7 @@ https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-single.
 1. 先导入并启用自己的机场订阅，备份原有扩展和覆写设置。
 2. 在 FlClash 的脚本管理页点“＋”，选择“从 URL 导入”，粘贴上面的地址。
 3. 在要使用的机场配置的“扩展脚本”中选中该脚本。仅下载脚本而不绑定到配置不会生效。
-4. 重新应用配置，使用规则模式。检查 AI、Steam 等分组、24 个规则集和 DNS 是否加载正确，再按自己的节点选择出口。
+4. 重新应用配置，使用规则模式。检查 AI、Steam 等分组、25 个规则集和 DNS 是否加载正确，再按自己的节点选择出口。
 5. 后续需要获取新版时，在该远程脚本菜单选择“同步”。不要将其当作机场订阅 URL，也不要将外部规则集自动更新等同于脚本定时同步。
 
 菜单名称会因版本和平台不同而略有差异；没有 URL 导入入口时，可以下载同一 JS，在脚本编辑器中粘贴并绑定。
@@ -60,6 +60,8 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - OpenAI 使用 MetaCubeX 域名分类；Claude、Gemini、Copilot 等列出的域名进入 AI 组。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
+- Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
+- Prime Video 与 Netflix、Disney、HBO、Spotify 一并进入 Streaming 组；Prime Video 使用独立的上游维护名单。
 - 已知平台进入相应分组；剩余目标进入 Final，默认代理。
 - 专用 BT 客户端的进程直连规则位于服务和国内域名规则之后，通用下载器按目标分流。
 
@@ -69,7 +71,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 
 | 来源 | 数据 | 配置周期 |
 | --- | --- | --- |
-| [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) | 22 个平台及通用规则集 | 24 小时 |
+| [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) | 23 个平台及通用规则集（含 Prime Video） | 24 小时 |
 | [Sukka](https://ruleset.skk.moe/Clash/domainset/game-download.txt) | 游戏下载 CDN | 12 小时 |
 | [caserangle/clash-rule](https://github.com/caserangle/clash-rule) | Steam 网页例外 | 24 小时 |
 | [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) | 域名分类及 IP 地理数据 | 24 小时 |
@@ -108,7 +110,7 @@ python scripts/build_flclash.py --check
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。
 
-发布检查：67 项通用 Node 回归、9 项单文件 Node 回归和 8 项 Python 检查通过；使用测试节点完成 Mihomo v1.19.32 配置检查。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+发布检查：69 项通用 Node 回归、9 项单文件 Node 回归和 8 项 Python 检查通过；使用测试节点完成 Mihomo v1.19.32 配置检查。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 

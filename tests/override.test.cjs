@@ -18,6 +18,25 @@ function input(names = ['香港 01', '日本 01', '新加坡 01', '美国 01', '
     mode: 'rule', tun: {enable: false}, 'mixed-port': 7890};
 }
 function output(names) {return plain(load()(input(names)));}
+test('Google offers region groups like YouTube instead of individual nodes',()=>{
+  const c=output();
+  const google=c['proxy-groups'].find(g=>g.name==='🔎 Google');
+  const youtube=c['proxy-groups'].find(g=>g.name==='📺 YouTube');
+  assert.equal(google.type,'select');
+  assert.deepEqual(google.proxies,youtube.proxies);
+  assert(!google.proxies.some(name=>c.proxies.some(node=>node.name===name)));
+});
+test('Prime Video uses the maintained streaming rules before China and Global',()=>{
+  const c=output();
+  const rule='RULE-SET,AmazonPrimeVideo,🎬 Streaming,no-resolve';
+  assert(c.rules.includes(rule));
+  assert(c.rules.indexOf(rule)<c.rules.indexOf('GEOSITE,cn,DIRECT'));
+  assert(c.rules.indexOf(rule)<c.rules.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve'));
+  const provider=c['rule-providers'].AmazonPrimeVideo;
+  assert.equal(provider.behavior,'classical');
+  assert.equal(provider.interval,86400);
+  assert.equal(provider.url,'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AmazonPrimeVideo/AmazonPrimeVideo.yaml');
+});
 function graph(config) {
   const groups = new Map(config['proxy-groups'].map(g => [g.name, g]));
   const valid = new Set(['DIRECT','REJECT',...config.proxies.map(p=>p.name),...groups.keys()]);
