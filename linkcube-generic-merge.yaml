@@ -1,0 +1,62 @@
+# 与同版 linkcube-generic.js 配套；先 Merge，再 Script。
+# 端口、运行模式、全局 IPv6 和 TUN 开关仍由客户端管理。
+find-process-mode: strict
+keep-alive-interval: 30
+unified-delay: true
+tcp-concurrent: true
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+tun:
+  auto-route: true
+  strict-route: false
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+dns:
+  enable: true
+  listen: 127.0.0.1:1053
+  prefer-h3: false
+  use-hosts: true
+  use-system-hosts: true
+  respect-rules: false
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  # 明确黑名单基线，不依赖客户端是否保留订阅原 dns 子字段。
+  # 已有特殊过滤条目请迁移到这里；白名单/rule 模式请一并修改模式和列表。
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - '+.localhost'
+    - '+.lan'
+    - '+.local'
+    - '+.home.arpa'
+    - '+.ntp.org'
+    - time.windows.com
+  # 以下为安全的国内基础解析，无对脚本策略组的悬空引用。
+  # 完整 DNS 分流、境外 DNS 代理出口由后续脚本生成。
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://223.5.5.5/dns-query#DIRECT
+    - https://doh.pub/dns-query#DIRECT
+  nameserver-policy:
+    'geosite:private':
+      - system
+    'geosite:cn':
+      - https://223.5.5.5/dns-query#DIRECT
+      - https://doh.pub/dns-query#DIRECT
+
+# 必须使用完整 geosite.dat；不要替换成缺少地区/日本分类的 lite 版本。
+geox-url:
+  mmdb: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb
+  asn: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb
+  geo-ip: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
+  geo-site: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+geodata-loader: memconservative
+geo-auto-update: true
+geo-update-interval: 24

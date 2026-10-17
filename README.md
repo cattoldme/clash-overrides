@@ -1,0 +1,85 @@
+# Clash 通用分流覆写
+
+为自己的机场订阅添加统一的策略组、国内直连、AI 分流、Steam 下载分流和 DNS 策略。
+
+**这里提供的是覆写文件，不是机场订阅。** 不包含可用节点、节点密码、订阅地址或作者的个人服务器/内网例外。每台设备仍需使用自己的节点订阅。
+
+## 下载地址
+
+| 文件 | 用途 | 原始文件链接 |
+| --- | --- | --- |
+| `linkcube-generic.js` | 生成策略组、规则及 DNS 分流 | [下载脚本](https://raw.githubusercontent.com/cattoldme/clash-overrides/main/linkcube-generic.js) |
+| `linkcube-generic-merge.yaml` | DNS、Fake-IP、规则数据更新等基础配置 | [下载配套 YAML](https://raw.githubusercontent.com/cattoldme/clash-overrides/main/linkcube-generic-merge.yaml) |
+
+请使用同一版本的两个文件。`main` 链接随仓库更新；需要固定版本时，将链接中的 `main` 换成所选提交的完整 SHA。
+
+## 在 Clash Verge Rev 中使用
+
+适用于支持 JavaScript `main(config)` 扩展、使用 Mihomo 内核的 Clash Verge Rev。仓库名称中的 LinkCube 只是文件命名来源，不要求使用该机场。
+
+1. 导入并启用自己的机场订阅，先确认原订阅可以联网。
+2. 备份该订阅现有的扩展配置和扩展脚本。将需要保留的内网 DNS、Fake-IP 过滤项及特殊分流例外迁移到自己的副本中。
+3. 在“订阅”页右键自己的订阅，打开“扩展配置”，填入配套 YAML 的内容并保存。
+4. 打开同一订阅的“扩展脚本”，填入 JS 内容并保存。执行顺序应为订阅扩展配置在前、订阅扩展脚本在后。
+5. 重新激活该订阅，使用规则模式，检查配置验证结果、规则集加载状态及实际命中。
+6. 检查旧的分组选择是否被保留：主代理不要误选 DIRECT；Final 建议选 Proxies；AI 选择实际可用地区；Bilibili、Microsoft、Apple、PayPal 可按需求选 DIRECT。
+
+**不要把 JS URL 或配套 YAML URL 粘贴到机场“订阅导入”框。** 它们不是包含节点的完整订阅，Clash Verge Rev 中应按以上方式放入扩展编辑器。
+
+其他设备可以打开上述公开链接获取同一份内容。其他客户端只有在兼容该脚本接口及 Mihomo 配置字段时才适用；不能仅凭支持 Clash 就认定兼容。若某客户端提供兼容的远程覆写 URL 功能，可在其对应入口使用链接；本仓库没有为该客户端逐一验证。
+
+## 分流方式
+
+- 内网、国内域名及最终判断为中国 IP 的未分类目标直连。
+- OpenAI 使用 MetaCubeX 域名分类；Claude、Gemini、Copilot 等列出的域名进入 AI 组。
+- Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
+- 日本服务进入日本组；无日本节点时回退到总代理。
+- 已知平台进入相应分组；剩余目标进入 Final，默认代理。
+- 专用 BT 客户端的进程直连规则位于服务和国内域名规则之后，通用下载器按目标分流。
+
+本配置不是自动识别所有被封网站的探测器，也不保证地区解锁或所有网站都适合所选出口。
+
+## 自动更新的范围
+
+| 来源 | 数据 | 配置周期 |
+| --- | --- | --- |
+| [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) | 22 个平台及通用规则集 | 24 小时 |
+| [Sukka](https://ruleset.skk.moe/Clash/domainset/game-download.txt) | 游戏下载 CDN | 12 小时 |
+| [caserangle/clash-rule](https://github.com/caserangle/clash-rule) | Steam 网页例外 | 24 小时 |
+| [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) | 域名分类及 IP 地理数据 | 24 小时 |
+
+以上是客户端尝试更新的周期，依赖网络和上游可用性。外部名单遵循各自维护者的规则和许可。
+
+**脚本逻辑和配套 YAML 不会因机场订阅或外部规则集更新而自动同步。** 在 Clash Verge Rev 中升级本仓库版本，需要重新获取这两个文件并更新扩展内容。已有的个人修改应单独保留并合并，避免直接覆盖。
+
+## 自定义例外
+
+JS 开头的 `CUSTOM_DIRECT_DOMAINS` 和 `CUSTOM_PROXY_DOMAINS` 默认为空。
+
+需要时在自己的副本内填写域名后缀，不填协议、路径、端口、IP、通配符或逗号。更具体后缀优先，相同后缀同时指定时代理优先；这些例外也会同步设置 DNS 策略。
+
+公司私有域名需要对应内网 DNS，不应直接交给公共 DNS。配套 YAML 使用明确的 Fake-IP 黑名单基线；自己已有的兼容项需要迁移。普通未分类查询可能发给国内 DNS，本配置不以 DNS 匿名化为目标。
+
+## 兼容范围与回滚
+
+- 仅重建直接在 `proxies` 中提供节点的订阅。纯 `proxy-providers` 和混合 provider 输入原样返回，没有实现其策略重建。
+- 节点协议、服务器、端口和凭据不改；策略组、规则集和路由规则会重建。
+- 重名节点、与生成分组重名的节点、依赖旧订阅组的 `dialer-proxy` 会报错，应先解决输入冲突。
+- 全局 IPv6、TUN 开关、端口和系统代理仍由客户端管理；配套 YAML 的 DNS IPv6 默认为关闭。其他设备按自己的环境决定客户端开关。
+- 出现问题时恢复自己的两份扩展备份，重新激活订阅，并检查分组选择。
+
+## 验证
+
+在仓库根目录执行：
+
+```sh
+node --check linkcube-generic.js
+node --test tests/override.test.cjs
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
+Node 测试只使用内置模块；Python 测试需要 PyYAML。
+
+发布检查：67 项 Node 回归、7 项 Python 检查通过；通用脚本和 YAML 与已测试源文件一致，使用测试节点完成 Mihomo v1.19.32 配置检查。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+
+同版规则逻辑另在 Windows / Clash Verge Rev 2.5.8 / Mihomo v1.19.32 环境经过分流与联网验证；该设备使用额外的个人覆写。其他设备仍需验证自己的节点、DNS、内网与常用应用。HTTP 403 若带 `cf-mitigated: challenge`，代表浏览器验证页，应通过真实浏览器验证，不能直接认定节点失效。
