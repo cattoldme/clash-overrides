@@ -75,5 +75,19 @@ class MergeTests(unittest.TestCase):
         self.assertNotIn('enable', out['tun'])
         self.assertTrue(out['dns']['direct-nameserver-follow-policy'])
 
+    def test_standalone_matches_the_two_file_output(self):
+        fixture = {'mode': 'rule', 'mixed-port': 7890,
+                   'hosts': {'router.lan': '192.0.2.2'},
+                   'proxies': [{'name': '日本 Test', 'type': 'ss', 'server': '192.0.2.1',
+                                'port': 10000, 'cipher': 'aes-128-gcm', 'password': 'TEST-ONLY'}]}
+        merged = {**self.config, **fixture}
+        runner = "const fs=require('fs'),vm=require('vm');const c=vm.createContext({});vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);process.stdout.write(JSON.stringify(c.main(JSON.parse(fs.readFileSync(0,'utf8')))));"
+        outputs = []
+        for script, config in [('linkcube-generic.js', merged), ('flclash-single.js', fixture)]:
+            result = subprocess.run(['node', '-e', runner, str(ROOT/script)], input=json.dumps(config),
+                                    text=True, encoding='utf-8', capture_output=True, timeout=10, check=True)
+            outputs.append(json.loads(result.stdout))
+        self.assertEqual(outputs[0], outputs[1])
+
 if __name__ == '__main__':
     unittest.main()

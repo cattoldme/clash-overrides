@@ -4,7 +4,33 @@
 
 **这里提供的是覆写文件，不是机场订阅。** 不包含可用节点、节点密码、订阅地址或作者的个人服务器/内网例外。每台设备仍需使用自己的节点订阅。
 
-## 下载地址
+## FlClash：只导入一个 JS
+
+**FlClash 单文件地址：**
+
+```text
+https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-single.js
+```
+
+这个文件已经包含下方通用 JS 和配套 YAML 的基础设置，不需要再导入 YAML，也不要同时叠加原通用 JS。
+
+1. 先导入并启用自己的机场订阅，备份原有扩展和覆写设置。
+2. 在 FlClash 的脚本管理页点“＋”，选择“从 URL 导入”，粘贴上面的地址。
+3. 在要使用的机场配置的“扩展脚本”中选中该脚本。仅下载脚本而不绑定到配置不会生效。
+4. 重新应用配置，使用规则模式。检查 AI、Steam 等分组、24 个规则集和 DNS 是否加载正确，再按自己的节点选择出口。
+5. 后续需要获取新版时，在该远程脚本菜单选择“同步”。不要将其当作机场订阅 URL，也不要将外部规则集自动更新等同于脚本定时同步。
+
+菜单名称会因版本和平台不同而略有差异；没有 URL 导入入口时，可以下载同一 JS，在脚本编辑器中粘贴并绑定。
+
+脚本通过 `main(config)` 合入基础配置并生成分流。它保留节点、hosts、原有具体域名 DNS 策略和 Fake-IP 过滤项；已有 whitelist/rule 过滤模式不会被改为 blacklist。DNS 基础设置按配套 YAML 启用。没有节点、provider-only 或混合 provider 的输入仍按原通用版行为跳过。
+
+FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保证覆盖它们。端口、全局 IPv6、TUN 开关、地理数据来源/更新、连接选项等以实际配置预览为准；显式选择的 DNS/TUN 覆写项也可能覆盖脚本。使用完整 MetaCubeX geosite 数据、检查地理数据自动更新，并让 AI/内网 DNS 策略及 Fake-IP 兼容项在最终配置中保留。Android 的 DNS 监听地址也可能由客户端安全模式调整。
+
+依据：[FlClash 脚本导入入口](https://github.com/chen08209/FlClash/blob/main/lib/views/config/scripts.dart)、[绑定到订阅配置](https://github.com/chen08209/FlClash/blob/main/lib/views/profiles/extend/script.dart)、[最终配置生成](https://github.com/chen08209/FlClash/blob/main/lib/common/task.dart)。
+
+该单文件已完成独立回归、与双文件输出等价检查和 Mihomo 内核配置检查；尚未在 FlClash Android/Windows 客户端上完成实际联网验收。其他设备需验证自己的节点、最终 DNS 和常用应用。
+
+## Clash Verge Rev：两个配套文件
 
 | 文件 | 用途 | 原始文件链接 |
 | --- | --- | --- |
@@ -50,7 +76,7 @@
 
 以上是客户端尝试更新的周期，依赖网络和上游可用性。外部名单遵循各自维护者的规则和许可。
 
-**脚本逻辑和配套 YAML 不会因机场订阅或外部规则集更新而自动同步。** 在 Clash Verge Rev 中升级本仓库版本，需要重新获取这两个文件并更新扩展内容。已有的个人修改应单独保留并合并，避免直接覆盖。
+**脚本逻辑和配套 YAML 不会因机场订阅或外部规则集更新而自动同步。** 在 Clash Verge Rev 中升级本仓库版本，需要重新获取这两个文件并更新扩展内容。FlClash 使用远程单文件脚本时，可通过其“同步”入口获取新版。已有的个人修改应单独保留并合并，避免直接覆盖。
 
 ## 自定义例外
 
@@ -75,11 +101,15 @@ JS 开头的 `CUSTOM_DIRECT_DOMAINS` 和 `CUSTOM_PROXY_DOMAINS` 默认为空。
 ```sh
 node --check linkcube-generic.js
 node --test tests/override.test.cjs
+node --test tests/flclash.test.cjs
 python -m unittest discover -s tests -p 'test_*.py'
+python scripts/build_flclash.py --check
 ```
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。
 
-发布检查：67 项 Node 回归、7 项 Python 检查通过；通用脚本和 YAML 与已测试源文件一致，使用测试节点完成 Mihomo v1.19.32 配置检查。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+发布检查：67 项通用 Node 回归、9 项单文件 Node 回归和 8 项 Python 检查通过；使用测试节点完成 Mihomo v1.19.32 配置检查。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+
+维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 
 同版规则逻辑另在 Windows / Clash Verge Rev 2.5.8 / Mihomo v1.19.32 环境经过分流与联网验证；该设备使用额外的个人覆写。其他设备仍需验证自己的节点、DNS、内网与常用应用。HTTP 403 若带 `cf-mitigated: challenge`，代表浏览器验证页，应通过真实浏览器验证，不能直接认定节点失效。
