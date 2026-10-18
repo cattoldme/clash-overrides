@@ -61,6 +61,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - AI、TikTok、Spotify、Streaming 均为独立的 select 分组，选项顺序统一为 Proxies → HK / JP / SG / US / TW → Manual，默认跟随 Proxies。仅列出订阅中已生成的地区组，没有这五个地区时仍提供 Proxies、Manual；不再因缺少美国节点插入 REJECT。Manual 是共享手选组，客户端保存的旧选择可能覆盖初始默认，需要手动切换。后续应用选择组沿用“总代理 → 地区 → 手选”的顺序。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
+- 地区服务不再附加无人维护的手写网站清单：已移除原来的 19 条日本网站域名补全，只保留接入的上游规则。原清单中的网站仍可能被上游或通用规则匹配，不代表阻止访问；Hulu 日版接口的上游纠错例外继续保留。
 - 新增地区限定服务直接使用对应地区组：mora → JP；Hulu 美版、Peacock、Pandora → US；myTV SUPER → HK。它们不进入 Streaming，也不新增应用选择组；缺少所需地区节点时 REJECT，避免误送其他地区。此规则不改变上一条既有日本服务的回退行为。
 - mora 使用 Hawaiine 的独立名单，HuluUSA、Peacock、Pandora 使用 blackmatrix7，myTV SUPER 使用 MetaCubeX 的 mytvsuper 域名名单，避免套用整个 TVB 分类。地区规则优先于 Streaming 和通用平台规则，用户自定义例外继续优先；HuluUSA 上游含日版 prod.hjholdings.tv，脚本先将该域名及其子域名送往 JP，缺少 JP 时 REJECT。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
@@ -121,7 +122,7 @@ python scripts/build_flclash.py --check
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：157 项 Node 回归和 9 项 Python 检查通过，覆盖六个 Streaming 平台、应用选项顺序、五项新增地区服务及全部 32 种地区有无组合下的缺节点处理、Hulu 美日名单交叉和自定义例外。两版脚本的新增规则格式及生成分组通过 10 项隔离 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：159 项 Node 回归和 9 项 Python 检查通过，覆盖手写地区清单移除、六个 Streaming 平台、应用选项顺序、五项地区服务及全部 32 种地区有无组合下的缺节点处理、Hulu 美日名单交叉和自定义例外。地区服务版本此前通过 10 项隔离 Mihomo v1.19.32 配置检查；本次只删除手写地区规则，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 

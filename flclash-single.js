@@ -87,30 +87,6 @@ const JAPAN_RULESETS = [
   "TVer",
 ];
 const JAPAN_GEOSITES = ["unext", "radiko", "nhk", "dlsite"];
-const JAPAN_SITE_DOMAINS = [
-  // 日本国内向け動画、电视、广播服务；未被 Geosite 类别完整覆盖的保留。
-  "lemino.docomo.ne.jp",
-  "fod.fujitv.co.jp",
-  "telasa.jp",
-  "wowow.co.jp",
-  "animestore.docomo.ne.jp",
-
-  // 日本成人内容与数字商店；无对应维护类别的保留。
-  "fanza.com",
-  "dmmgames.com",
-  "duga.jp",
-  "mgstage.com",
-  "sod.co.jp",
-  "sodprime.com",
-  "prestige-av.com",
-  "s1s1s1.com",
-  "moodyz.com",
-  "ideapocket.com",
-  "madonna-av.com",
-  "getchu.com",
-  "gyutto.com",
-  "digiket.com",
-];
 
 function buildRuleProviders() {
   const providers = {};
@@ -236,7 +212,6 @@ function buildRules(japanTarget, regionTargets) {
     [`DOMAIN-SUFFIX,prod.hjholdings.tv,${regionTargets.JP || "REJECT"}`],
     JAPAN_RULESETS.map((name) => ruleSet(name, japanTarget)),
     JAPAN_GEOSITES.map((name) => `GEOSITE,${name},${japanTarget}`),
-    JAPAN_SITE_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${japanTarget}`),
     // 新增地区限定服务缺少对应节点时拒绝，不回退到其他地区。
     [ruleSet("Mora", regionTargets.JP || "REJECT"),
       ruleSet("HuluUSA", regionTargets.US || "REJECT"),

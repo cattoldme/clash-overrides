@@ -39,6 +39,19 @@ function route(config,host) {
   }
 }
 for(const script of ['linkcube-generic.js','flclash-single.js']) {
+  test(script+' removes the unmaintained handwritten Japan website list while retaining maintained categories',()=>{
+    const c=load(script)(names);
+    for(const domain of ['lemino.docomo.ne.jp','fod.fujitv.co.jp','telasa.jp','wowow.co.jp','animestore.docomo.ne.jp',
+      'fanza.com','dmmgames.com','duga.jp','mgstage.com','sod.co.jp','sodprime.com','prestige-av.com',
+      's1s1s1.com','moodyz.com','ideapocket.com','madonna-av.com','getchu.com','gyutto.com','digiket.com']) {
+      assert(!c.rules.some(rule=>rule.startsWith('DOMAIN-SUFFIX,'+domain+',')),domain+' must not have a handwritten route');
+      assert(!Object.hasOwn(c.dns['nameserver-policy'],'+.'+domain),domain+' must not have a handwritten DNS policy');
+    }
+    for(const service of ['Abema','DMM','HuluJP','Niconico','TVer'])
+      assert(c.rules.includes('RULE-SET,'+service+',🇯🇵 JP,no-resolve'));
+    for(const category of ['unext','radiko','nhk','dlsite'])
+      assert(c.rules.includes('GEOSITE,'+category+',🇯🇵 JP'));
+  });
   test(script+' sends the five added regional services directly to the required country groups',()=>{
     const c=load(script)(names);
     for(const [service,target] of services) {
