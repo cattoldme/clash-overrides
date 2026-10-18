@@ -60,6 +60,7 @@ const BLACKMATRIX7_RULESETS = [
   "YouTube",
   "Disney",
   "HBO",
+  "ParamountPlus",
   "TikTok",
   "Spotify",
   "Telegram",
@@ -131,6 +132,12 @@ function buildRuleProviders() {
       interval: 86400, proxy: GROUP.Proxies,
     };
   }
+  providers.Crunchyroll = {
+    type: "http", behavior: "classical", format: "text",
+    url: "https://raw.githubusercontent.com/liandu2024/clash/main/list/Crunchyroll.list",
+    path: "./ruleset/liandu2024/Crunchyroll.list",
+    interval: 86400, proxy: GROUP.Proxies,
+  };
   // Sukka maintains a dedicated game-content CDN list, including Steam depots.
   providers.GameDownload = {
     type: "http",
@@ -238,6 +245,8 @@ function buildRules(japanTarget) {
     ruleSet("Netflix", GROUP.Streaming),
     ruleSet("Disney", GROUP.Streaming),
     ruleSet("HBO", GROUP.Streaming),
+    ruleSet("Crunchyroll", GROUP.Streaming),
+    ruleSet("ParamountPlus", GROUP.Streaming),
     ruleSet("TikTok", GROUP.TikTok),
     ruleSet("Spotify", GROUP.Spotify),
     ruleSet("Telegram", GROUP.Telegram),
@@ -410,23 +419,16 @@ function main(config) {
   if (!autoNodes.length) autoNodes = nodes;
   autoNodes = Array.from(new Set(autoNodes));
 
-  // AI 默认美国，提供所有已生成地区、总代理和手选；无美国节点时默认拒绝。
-  const aiChoices = [byCountryGroups.US || "REJECT"].concat(
-    existing(byCountryGroups, ["HK", "JP", "SG", "TW"]).map((code) => byCountryGroups[code]),
-    [GROUP.Proxies, GROUP.Manual]
-  );
-  const aiGroup = group(GROUP.AI, "select", aiChoices);
-
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
-  const usDefaultChoices = [byCountryGroups.US || "REJECT"]
-    .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Proxies, GROUP.Manual]);
+  // 应用选择顺序统一为总代理、已有地区、手选；默认跟随总代理。
+  const serviceChoices = [GROUP.Proxies].concat(countryChoices, [GROUP.Manual]);
   const proxyChoices = [GROUP.Auto, GROUP.Fallback].concat(countryChoices, [GROUP.Manual, "DIRECT"]);
   const groups = [
     group(GROUP.Proxies, "select", proxyChoices),
-    aiGroup,
-    group(GROUP.TikTok, "select", usDefaultChoices.slice()),
-    group(GROUP.Spotify, "select", usDefaultChoices.slice()),
-    group(GROUP.Streaming, "select", existing(byCountryGroups, ["SG", "US", "HK", "JP", "TW"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
+    group(GROUP.AI, "select", serviceChoices.slice()),
+    group(GROUP.TikTok, "select", serviceChoices.slice()),
+    group(GROUP.Spotify, "select", serviceChoices.slice()),
+    group(GROUP.Streaming, "select", serviceChoices.slice()),
     group(GROUP.YouTube, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Telegram, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Google, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),

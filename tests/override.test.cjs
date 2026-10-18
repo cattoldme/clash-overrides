@@ -224,12 +224,12 @@ test('unclassified host resolving to LAN or CGNAT gets a late direct fallback',(
 });
 
 for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spotify']]) {
-  test(service+' has an independent US-default group before general routing',()=>{
+  test(service+' has an independent proxy-default group before general routing',()=>{
     const c=output();
     const g=c['proxy-groups'].find(g=>g.name===name);
     assert(g, 'missing independent group');
     assert.equal(g.type,'select');
-    assert.deepEqual(g.proxies,['🇺🇸 US','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW','🚀 Proxies','🧭 Manual']);
+    assert.deepEqual(g.proxies,['🚀 Proxies','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW','🧭 Manual']);
     const rule='RULE-SET,'+service+','+name+',no-resolve';
     assert(c.rules.includes(rule));
     for(const fallback of ['GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final'])
@@ -244,17 +244,16 @@ for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spot
   test(service+' offers every existing region, Proxies and Manual for all region combinations',()=>{
     for(let mask=1;mask<32;mask++) {
       const c=output(['香港','日本','新加坡','美国','台湾'].filter((_,i)=>mask&(1<<i)));
-      const regions=['🇺🇸 US','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      const expected=regions[0]==='🇺🇸 US'?regions:['REJECT',...regions];
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,[...expected,'🚀 Proxies','🧭 Manual']);
+      const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
       graph(c);
     }
   });
-  test(service+' does not fall back to Hong Kong when US nodes are absent',()=>{
+  test(service+' still defaults to Proxies when US nodes are absent',()=>{
     for(const names of [['香港 01'],['香港 01','日本 01','新加坡 01'],['德国 01']]) {
       const c=output(names);
       const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['REJECT',...regions,'🚀 Proxies','🧭 Manual']);
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
       graph(c);
     }
   });

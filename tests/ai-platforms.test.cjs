@@ -27,15 +27,15 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     for(const domain of ['claude.ai','anthropic.com','gemini.google.com','generativelanguage.googleapis.com','copilot.microsoft.com','sydney.bing.com','openaimerge.com'])
       assert(!Object.hasOwn(policy,'+.'+domain),'removed handwritten DNS '+domain);
   });
-  test(script+' gives AI, TikTok and Spotify identical US-default choices for every region combination',()=>{
+  test(script+' gives AI, TikTok, Spotify and Streaming proxy-first choices for every region combination',()=>{
     const main=load(script);
-    for(let mask=1;mask<32;mask++) {
-      const regions=names.filter((_,index)=>mask&(1<<index));
+    for(let mask=0;mask<32;mask++) {
+      const regions=mask?names.filter((_,index)=>mask&(1<<index)):['德国'];
       const c=main(regions);
-      const expected=[regions.includes('美国')?'🇺🇸 US':'REJECT',
-        ...[['香港','🇭🇰 HK'],['日本','🇯🇵 JP'],['新加坡','🇸🇬 SG'],['台湾','🇹🇼 TW']].filter(([name])=>regions.includes(name)).map(([,group])=>group),
-        '🚀 Proxies','🧭 Manual'];
-      for(const name of ['🤖 AI','🎵 TikTok','🎧 Spotify']) {
+      const expected=['🚀 Proxies',
+        ...[['香港','🇭🇰 HK'],['日本','🇯🇵 JP'],['新加坡','🇸🇬 SG'],['美国','🇺🇸 US'],['台湾','🇹🇼 TW']].filter(([name])=>regions.includes(name)).map(([,group])=>group),
+        '🧭 Manual'];
+      for(const name of ['🤖 AI','🎵 TikTok','🎧 Spotify','🎬 Streaming']) {
         const group=c['proxy-groups'].find(group=>group.name===name);
         assert.equal(group.type,'select');
         assert.deepEqual(group.proxies,expected,name);
