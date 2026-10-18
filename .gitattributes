@@ -1,0 +1,2 @@
+# Preserve upstream fixture checksums when checking out on Windows.
+tests/fixtures/*.yaml -text
