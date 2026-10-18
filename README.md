@@ -57,7 +57,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 ## 分流方式
 
 - 内网、国内域名及最终判断为中国 IP 的未分类目标直连。
-- OpenAI 使用 MetaCubeX 域名分类；Claude、Gemini、Copilot 等列出的域名进入 AI 组。
+- 境外 AI 使用明确的 MetaCubeX 服务分类及少量补充域名，先于 Google、GitHub、Microsoft 通用规则进入 AI 组；国内 AI 保持原有分流。AI 组仍初始优先新加坡，其次美国、日本，并提供共享 Manual。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
@@ -67,6 +67,21 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - 专用 BT 客户端的进程直连规则位于服务和国内域名规则之后，通用下载器按目标分流。
 
 本配置不是自动识别所有被封网站的探测器，也不保证地区解锁或所有网站都适合所选出口。
+
+## AI 覆盖范围
+
+| 范围 | 当前覆盖 |
+| --- | --- |
+| 对话、搜索与模型平台 | OpenAI / ChatGPT / Sora、Claude / Anthropic、Perplexity、Grok / xAI、Poe |
+| Google AI | Gemini、AI Studio、NotebookLM，以及上游 google-gemini 分类内的 Antigravity、Jules、Flow 等域名 |
+| 编程助手 | GitHub Copilot、Cursor、Windsurf / Codeium、JetBrains AI |
+| 模型托管与推理 | Hugging Face、Groq；补充 OpenRouter、Mistral、Cohere 域名 |
+| 图像与语音 | ElevenLabs；补充 Midjourney 域名 |
+| 既有例外 | Microsoft Copilot 域名及 openaimerge.com 等原有补充项 |
+
+脚本中的 `AI_GEOSITES` 选择具体服务分类，`AI_DOMAINS` 保留补充域名。没有启用 category-ai 大分类，也没有将整个 Google、GitHub、微软或云服务域名划入 AI。Hugging Face 的匹配范围包含模型下载域名，相关下载也会使用 AI 组出口。国内 AI 仍按原有规则判断；这不代表强制将所有国内 AI 直连。
+
+这些是域名覆盖范围，不能保证每项服务的全部连接、地区解锁或可用性。分类随完整 MetaCubeX geosite 数据更新；升级脚本后也应检查地理数据更新，自定义域名例外仍排在 AI 分类之前。离线快照只验证采样时的名单范围，不限制未来上游变化。
 
 ## 自动更新的范围
 
@@ -106,13 +121,14 @@ node --check linkcube-generic.js
 node --test tests/override.test.cjs
 node --test tests/flclash.test.cjs
 node --test tests/dns-normalization.test.cjs
+node --test tests/ai-coverage.test.cjs
 python -m unittest discover -s tests -p 'test_*.py'
 python scripts/build_flclash.py --check
 ```
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：135 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：141 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 
