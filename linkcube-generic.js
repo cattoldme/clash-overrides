@@ -277,7 +277,7 @@ function configureDns(config) {
   const policy = {};
   const previous = dns["nameserver-policy"] || {};
   for (const key of Object.keys(previous)) {
-    if (!/^(geosite|rule-set):/.test(key)) policy[key] = previous[key];
+    if (!/^(geosite|rule-set):/i.test(key)) policy[key] = previous[key];
   }
   for (const domain of LAN_DOMAINS) policy[`+.${domain}`] = ["system"];
   for (const domain of AI_DOMAINS) policy[`+.${domain}`] = remote;
@@ -318,7 +318,8 @@ function configureDns(config) {
 }
 
 function retainDnsDependencies(config, dns, groups, providers) {
-  if (!dns || typeof dns !== "object" || Array.isArray(dns) || dns.enable === false) return;
+  // 内核在 DNS 关闭时也会解析这些引用，依赖检查不能随开关跳过。
+  if (!dns || typeof dns !== "object" || Array.isArray(dns)) return;
   const oldGroups = new Set((config["proxy-groups"] || []).map((entry) => entry.name));
   const targets = new Set(groups.map((entry) => entry.name).concat(config.proxies.map((entry) => entry.name)));
   function checkExit(name) {
@@ -330,7 +331,7 @@ function retainDnsDependencies(config, dns, groups, providers) {
   for (const field of ["nameserver-policy", "proxy-server-nameserver-policy"]) {
     const policy = dns[field] || {};
     for (const key of Object.keys(policy)) {
-      if (field === "proxy-server-nameserver-policy" && key.startsWith("rule-set:")) {
+      if ((field === "proxy-server-nameserver-policy" || dns.enable === false) && /^rule-set:/i.test(key)) {
         for (const name of key.slice(9).split(",")) needed.add(name);
       }
       const servers = Array.isArray(policy[key]) ? policy[key] : [policy[key]];
@@ -346,9 +347,9 @@ function retainDnsDependencies(config, dns, groups, providers) {
   if (dns["enhanced-mode"] === "fake-ip") {
     for (const rule of dns["fake-ip-filter"] || []) {
       if (dns["fake-ip-filter-mode"] === "rule") {
-        const parts = rule.split(",");
-        if (parts[0] === "RULE-SET") needed.add(parts[1]);
-      } else if (rule.startsWith("rule-set:")) {
+        const parts = rule.split(",").map((part) => part.trim());
+        if (parts[0].toUpperCase() === "RULE-SET") needed.add(parts[1]);
+      } else if (/^rule-set:/i.test(rule)) {
         for (const name of rule.slice(9).split(",")) needed.add(name);
       }
     }
