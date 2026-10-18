@@ -419,7 +419,7 @@ function main(config) {
 
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
   const usDefaultChoices = [byCountryGroups.US || "REJECT"]
-    .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Manual]);
+    .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Proxies, GROUP.Manual]);
   const proxyChoices = [GROUP.Auto, GROUP.Fallback].concat(countryChoices, [GROUP.Manual, "DIRECT"]);
   const groups = [
     group(GROUP.Proxies, "select", proxyChoices),
