@@ -1,0 +1,11 @@
+# Source: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Pandora/Pandora.yaml
+# Scope snapshot: 2026-10-18; runtime provider continues updating upstream.
+# NAME: Pandora
+# AUTHOR: blackmatrix7
+# REPO: https://github.com/blackmatrix7/ios_rule_script
+# UPDATED: 2025-06-06 09:16:59
+# DOMAIN-SUFFIX: 2
+# TOTAL: 2
+payload:
+  - DOMAIN-SUFFIX,p-cdn.us
+  - DOMAIN-SUFFIX,pandora.com

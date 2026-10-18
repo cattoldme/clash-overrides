@@ -36,7 +36,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     for(const [service,expected] of Object.entries(upstreams))
       assert.deepEqual(c['rule-providers'][service],{type:'http',behavior:'classical',
         ...expected,interval:86400,proxy:'🚀 Proxies'});
-    assert.equal(Object.keys(c['rule-providers']).length,28);
+    assert.equal(Object.keys(c['rule-providers']).length,33);
   });
   test(script+' keeps custom exceptions ahead of the added streaming providers',()=>{
     const domains=['api.crunchyroll.com','www.paramountplus.com'];

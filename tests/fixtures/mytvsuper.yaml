@@ -1,0 +1,4 @@
+# Source: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/1852a7d214920d77c753293c49eb26a996e52081/geo/geosite/mytvsuper.yaml
+# Scope snapshot: 2026-10-18; runtime provider continues updating upstream.
+payload:
+    - +.mytvsuper.com

@@ -17,7 +17,7 @@ https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-single.
 1. 先导入并启用自己的机场订阅，备份原有扩展和覆写设置。
 2. 在 FlClash 的脚本管理页点“＋”，选择“从 URL 导入”，粘贴上面的地址。
 3. 在要使用的机场配置的“扩展脚本”中选中该脚本。仅下载脚本而不绑定到配置不会生效。
-4. 重新应用配置，使用规则模式。检查 AI、TikTok、Spotify、Steam 等分组、28 个基础规则集和 DNS 是否加载正确，再按自己的节点选择出口。
+4. 重新应用配置，使用规则模式。检查 AI、TikTok、Spotify、Steam 等分组、33 个基础规则集和 DNS 是否加载正确，再按自己的节点选择出口。
 5. 后续需要获取新版时，在该远程脚本菜单选择“同步”。不要将其当作机场订阅 URL，也不要将外部规则集自动更新等同于脚本定时同步。
 
 菜单名称会因版本和平台不同而略有差异；没有 URL 导入入口时，可以下载同一 JS，在脚本编辑器中粘贴并绑定。
@@ -61,6 +61,8 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - AI、TikTok、Spotify、Streaming 均为独立的 select 分组，选项顺序统一为 Proxies → HK / JP / SG / US / TW → Manual，默认跟随 Proxies。仅列出订阅中已生成的地区组，没有这五个地区时仍提供 Proxies、Manual；不再因缺少美国节点插入 REJECT。Manual 是共享手选组，客户端保存的旧选择可能覆盖初始默认，需要手动切换。后续应用选择组沿用“总代理 → 地区 → 手选”的顺序。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
+- 新增地区限定服务直接使用对应地区组：mora → JP；Hulu 美版、Peacock、Pandora → US；myTV SUPER → HK。它们不进入 Streaming，也不新增应用选择组；缺少所需地区节点时 REJECT，避免误送其他地区。此规则不改变上一条既有日本服务的回退行为。
+- mora 使用 Hawaiine 的独立名单，HuluUSA、Peacock、Pandora 使用 blackmatrix7，myTV SUPER 使用 MetaCubeX 的 mytvsuper 域名名单，避免套用整个 TVB 分类。地区规则优先于 Streaming 和通用平台规则，用户自定义例外继续优先；HuluUSA 上游含日版 prod.hjholdings.tv，脚本先将该域名及其子域名送往 JP，缺少 JP 时 REJECT。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
 - TikTok、Spotify 各自进入对应分组，地区组按连通性测速，不保证地区解锁。TikTok 使用上游维护名单，其中也包含 CapCut、Trae 等相关域名。
 - Streaming 分流六个平台：Netflix、Disney+、HBO Max、Prime Video、Crunchyroll、Paramount+，六者共用 Streaming 的出口选择。Netflix、Prime Video 使用 MetaCubeX 的域名名单；Disney、HBO、ParamountPlus 使用 blackmatrix7；Crunchyroll 使用 [liandu2024 的独立名单](https://github.com/liandu2024/clash/blob/main/list/Crunchyroll.list)。新增名单不借用整个 Sony、CBS 或通用代理大分类。
@@ -74,11 +76,12 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 
 | 来源 | 数据 | 配置周期 |
 | --- | --- | --- |
-| [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) | 23 个平台及通用规则集，含 Disney、HBO、ParamountPlus | 24 小时 |
+| [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) | 26 个平台及通用规则集，含 Disney、HBO、ParamountPlus、HuluUSA、Peacock、Pandora | 24 小时 |
+| [Hawaiine/mihomo-rules](https://github.com/Hawaiine/mihomo-rules/blob/main/ruleset/mora/mora.yaml) | mora 独立规则集 | 24 小时 |
 | [liandu2024/clash](https://github.com/liandu2024/clash/blob/main/list/Crunchyroll.list) | Crunchyroll 独立规则集 | 24 小时 |
 | [Sukka](https://ruleset.skk.moe/Clash/domainset/game-download.txt) | 游戏下载 CDN | 12 小时 |
 | [caserangle/clash-rule](https://github.com/caserangle/clash-rule) | Steam 网页例外 | 24 小时 |
-| [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) | Netflix、Prime Video 两个域名规则集；域名分类及 IP 地理数据 | 24 小时 |
+| [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) | Netflix、Prime Video、myTV SUPER 三个域名规则集；域名分类及 IP 地理数据 | 24 小时 |
 
 以上是客户端尝试更新的周期，依赖网络和上游可用性。外部名单遵循各自维护者的规则和许可。
 
@@ -111,13 +114,14 @@ node --test tests/flclash.test.cjs
 node --test tests/dns-normalization.test.cjs
 node --test tests/ai-platforms.test.cjs
 node --test tests/streaming.test.cjs
+node --test tests/regional-services.test.cjs
 python -m unittest discover -s tests -p 'test_*.py'
 python scripts/build_flclash.py --check
 ```
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：149 项 Node 回归和 9 项 Python 检查通过，覆盖六个 Streaming 平台及两版脚本在全部 32 种地区有无组合下的应用选项顺序。此前版本针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查；本次新增规则格式与分组完成 6 项隔离配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：157 项 Node 回归和 9 项 Python 检查通过，覆盖六个 Streaming 平台、应用选项顺序、五项新增地区服务及全部 32 种地区有无组合下的缺节点处理、Hulu 美日名单交叉和自定义例外。两版脚本的新增规则格式及生成分组通过 10 项隔离 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 

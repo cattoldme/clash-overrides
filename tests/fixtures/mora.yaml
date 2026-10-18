@@ -1,0 +1,17 @@
+# Source: https://raw.githubusercontent.com/Hawaiine/mihomo-rules/f4447b73023474cb2f62de51277397fb8df911f0/ruleset/mora/mora.yaml
+# Scope snapshot: 2026-10-18; runtime provider continues updating upstream.
+# ===========================================
+# Rule Name: mora
+# Author: Hawaiine
+# Updated: 2026-07-22 11:40:00
+# DOMAIN-KEYWORD: 0
+# DOMAIN-REGEX: 0
+# DOMAIN: 0
+# DOMAIN-SUFFIX: 1
+# IP-CIDR: 0
+# IP-CIDR6: 0
+# IP-ASN: 0
+# PROCESS-NAME: 0
+# ===========================================
+payload:
+  - DOMAIN-SUFFIX,mora.jp

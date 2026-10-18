@@ -55,6 +55,9 @@ const BLACKMATRIX7_RULESETS = [
   "Abema",
   "DMM",
   "HuluJP",
+  "HuluUSA",
+  "Peacock",
+  "Pandora",
   "Niconico",
   "TVer",
   "YouTube",
@@ -124,7 +127,7 @@ function buildRuleProviders() {
     };
   }
   // 域名名单避免将共享 AWS 区域、CDN 整个后缀归入流媒体。
-  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"]]) {
+  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"], ["myTVSUPER", "mytvsuper"]]) {
     providers[name] = {
       type: "http", behavior: "domain", format: "yaml",
       url: `https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/${category}.yaml`,
@@ -136,6 +139,12 @@ function buildRuleProviders() {
     type: "http", behavior: "classical", format: "text",
     url: "https://raw.githubusercontent.com/liandu2024/clash/main/list/Crunchyroll.list",
     path: "./ruleset/liandu2024/Crunchyroll.list",
+    interval: 86400, proxy: GROUP.Proxies,
+  };
+  providers.Mora = {
+    type: "http", behavior: "classical", format: "yaml",
+    url: "https://raw.githubusercontent.com/Hawaiine/mihomo-rules/main/ruleset/mora/mora.yaml",
+    path: "./ruleset/hawaiine/mora.yaml",
     interval: 86400, proxy: GROUP.Proxies,
   };
   // Sukka maintains a dedicated game-content CDN list, including Steam depots.
@@ -211,7 +220,7 @@ function ruleSet(name, target) {
   return `RULE-SET,${name},${target},no-resolve`;
 }
 
-function buildRules(japanTarget) {
+function buildRules(japanTarget, regionTargets) {
   const localIPs = [
     "127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
     "100.64.0.0/10", "169.254.0.0/16", "224.0.0.0/4", "255.255.255.255/32",
@@ -221,9 +230,17 @@ function buildRules(japanTarget) {
     LAN_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},DIRECT`),
     ["GEOSITE,private,DIRECT"],
     customRules(),
+    // HuluUSA 上游也含日版接口，先固定到日本，防止误送美国。
+    [`DOMAIN-SUFFIX,prod.hjholdings.tv,${regionTargets.JP || "REJECT"}`],
     JAPAN_RULESETS.map((name) => ruleSet(name, japanTarget)),
     JAPAN_GEOSITES.map((name) => `GEOSITE,${name},${japanTarget}`),
-    JAPAN_SITE_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${japanTarget}`)
+    JAPAN_SITE_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${japanTarget}`),
+    // 新增地区限定服务缺少对应节点时拒绝，不回退到其他地区。
+    [ruleSet("Mora", regionTargets.JP || "REJECT"),
+      ruleSet("HuluUSA", regionTargets.US || "REJECT"),
+      ruleSet("Peacock", regionTargets.US || "REJECT"),
+      ruleSet("Pandora", regionTargets.US || "REJECT"),
+      ruleSet("myTVSUPER", regionTargets.HK || "REJECT")]
   );
   return rules.concat([
     // Steam Web 中有 steamusercontent 的精确例外，应先于 SteamCN 的大后缀。
@@ -454,7 +471,7 @@ function main(config) {
   config["proxy-groups"] = groups;
   config["rule-providers"] = providers;
   // 缺少日本节点时改走总代理，避免引用不存在的地区组。
-  config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies);
+  config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies, byCountryGroups);
   if (config.dns) config.dns = dnsConfig.dns;
   return config;
 }
