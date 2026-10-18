@@ -8,11 +8,7 @@ const LOCAL_DNS = [
   "https://doh.pub/dns-query#DIRECT",
 ];
 const REMOTE_DNS = ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"];
-const AI_DOMAINS = [
-  "claude.ai", "anthropic.com", "gemini.google.com",
-  "generativelanguage.googleapis.com", "copilot.microsoft.com", "sydney.bing.com",
-  "openaimerge.com",
-];
+const AI_GEOSITES = ["openai", "google-gemini", "anthropic", "xai"];
 const LAN_DOMAINS = ["localhost", "lan", "local", "home.arpa"];
 const BT_PROCESSES = [
   "qbittorrent", "qbittorrent.exe", "Transmission", "Transmission.exe",
@@ -231,9 +227,8 @@ function buildRules(japanTarget) {
     `DOMAIN-SUFFIX,steam-chat.com,${GROUP.Steam}`,
     ruleSet("SteamCN", "DIRECT"),
     ruleSet("GameDownload", "DIRECT"),
-    // OpenAI 使用完整 MetaCubeX geosite；不再把整个云厂商 ASN/共享域名归入 AI。
-    `GEOSITE,openai,${GROUP.AI}`,
-  ], AI_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${GROUP.AI}`), [
+    // AI 仅使用四个平台的完整 MetaCubeX geosite 分类。
+  ], AI_GEOSITES.map((name) => `GEOSITE,${name},${GROUP.AI}`), [
     // 地区国内服务/游戏 CDN 优先，不跟随整个平台的代理选择。
     "GEOSITE,microsoft@cn,DIRECT",
     "GEOSITE,apple-cn,DIRECT",
@@ -280,14 +275,13 @@ function configureDns(config) {
     if (!/^(geosite|rule-set):/i.test(key)) policy[key] = previous[key];
   }
   for (const domain of LAN_DOMAINS) policy[`+.${domain}`] = ["system"];
-  for (const domain of AI_DOMAINS) policy[`+.${domain}`] = remote;
   for (const domain of domainList(CUSTOM_DIRECT_DOMAINS)) policy[`+.${domain}`] = local;
   for (const domain of domainList(CUSTOM_PROXY_DOMAINS)) policy[`+.${domain}`] = remote;
   // Mihomo 按策略段首次命中；具体域名与自定义例外必须排在分类之前。
   policy["geosite:private"] = ["system"];
+  for (const name of AI_GEOSITES) policy[`geosite:${name}`] = remote;
   policy["geosite:cn"] = local;
   policy["geosite:gfw"] = remote;
-  policy["geosite:openai"] = remote;
   policy["rule-set:SteamCN,GameDownload"] = local;
   Object.assign(dns, {
     "respect-rules": false,

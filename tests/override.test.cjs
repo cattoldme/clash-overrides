@@ -85,15 +85,15 @@ test('OpenAI uses maintained domain categories, not shared ASN rules',()=>{
   const r=output().rules;assert(r.includes('GEOSITE,openai,🤖 AI'));
   assert(!r.some(x=>x.startsWith('IP-ASN,')||x.includes('DOMAIN-KEYWORD,openai')));
 });
-test('narrow AI exceptions precede Microsoft and Google',()=>{
+test('four AI categories precede Microsoft and Google',()=>{
   const r=output().rules;
-  for(const domain of ['claude.ai','anthropic.com','gemini.google.com','copilot.microsoft.com','sydney.bing.com']) {
-    const i=r.indexOf('DOMAIN-SUFFIX,'+domain+',🤖 AI');
+  for(const category of ['openai','google-gemini','anthropic','xai']) {
+    const i=r.indexOf('GEOSITE,'+category+',🤖 AI');
     assert(i>=0 && i<r.indexOf('RULE-SET,Microsoft,🪟 Microsoft,no-resolve'));
     assert(i<r.indexOf('RULE-SET,Google,🔎 Google,no-resolve'));
   }
-  assert(!r.includes('DOMAIN-SUFFIX,stripe.com,🤖 AI'));
 });
+
 test('Steam CDN stays direct; store rules beat broad Steam matching',()=>{
   const r=output().rules;
   const store=r.indexOf('RULE-SET,SteamWeb,🎮 Steam,no-resolve');

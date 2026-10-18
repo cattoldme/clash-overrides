@@ -57,7 +57,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 ## 分流方式
 
 - 内网、国内域名及最终判断为中国 IP 的未分类目标直连。
-- OpenAI 使用 MetaCubeX 域名分类；Claude、Gemini、Copilot 等列出的域名进入 AI 组。
+- AI 仅使用 MetaCubeX 的四个分类：ChatGPT / OpenAI（openai）、Gemini（google-gemini）、Claude / Anthropic（anthropic）、Grok / xAI（xai）。不再附加手写 AI 域名；其他服务按原有平台和兜底规则分流。Gemini 分类还包含 AI Studio、NotebookLM 等相关 Google AI 服务；实际范围随完整 geosite 数据更新。AI 组默认选择及选项不变：优先新加坡，其次美国、日本，再提供共享 Manual；没有这些地区时默认 REJECT。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
@@ -106,13 +106,14 @@ node --check linkcube-generic.js
 node --test tests/override.test.cjs
 node --test tests/flclash.test.cjs
 node --test tests/dns-normalization.test.cjs
+node --test tests/ai-platforms.test.cjs
 python -m unittest discover -s tests -p 'test_*.py'
 python scripts/build_flclash.py --check
 ```
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：135 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：141 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 
