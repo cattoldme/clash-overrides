@@ -61,20 +61,28 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
         assert(index<c.rules.indexOf(fallback),service+' must precede '+fallback);
       assert.deepEqual(c['rule-providers'][service],{type:'http',format:'yaml',...sources[service],interval:86400,proxy:'🚀 Proxies'});
     }
-    assert.equal(Object.keys(c['rule-providers']).length,33);
+    assert.equal(Object.keys(c['rule-providers']).length,35);
   });
-  test(script+' fails closed for absent required countries across all 32 region combinations',()=>{
+  test(script+' falls back to Proxies for absent countries across all 32 region combinations',()=>{
     const main=load(script);
     for(let mask=0;mask<32;mask++) {
       const c=main(mask?names.filter((_,index)=>mask&(1<<index)):['德国']);
       const groups=new Set(c['proxy-groups'].map(group=>group.name));
       for(const [service,target] of services) {
-        const expected=groups.has(target)?target:'REJECT';
+        const expected=groups.has(target)?target:'🚀 Proxies';
         assert(c.rules.includes('RULE-SET,'+service+','+expected+',no-resolve'),service+' mask='+mask);
       }
-      const jp=groups.has('🇯🇵 JP')?'🇯🇵 JP':'REJECT';
+      const jp=groups.has('🇯🇵 JP')?'🇯🇵 JP':'🚀 Proxies';
       assert(c.rules.includes('DOMAIN-SUFFIX,prod.hjholdings.tv,'+jp));
-      assert(c.rules.includes('RULE-SET,HuluJP,'+(groups.has('🇯🇵 JP')?'🇯🇵 JP':'🚀 Proxies')+',no-resolve'));
+      for(const service of ['Abema','DMM','HuluJP','Niconico','TVer'])
+        assert(c.rules.includes('RULE-SET,'+service+','+jp+',no-resolve'));
+      for(const category of ['unext','radiko','nhk','dlsite'])
+        assert(c.rules.includes('GEOSITE,'+category+','+jp));
+      for(const [host,target] of [
+        ['api.mora.jp','🇯🇵 JP'],['www.hulu.jp','🇯🇵 JP'],['prod.hjholdings.tv','🇯🇵 JP'],
+        ['api.prod.hjholdings.tv','🇯🇵 JP'],['www.hulu.com','🇺🇸 US'],
+        ['www.peacocktv.com','🇺🇸 US'],['www.pandora.com','🇺🇸 US'],['www.mytvsuper.com','🇭🇰 HK'],
+      ])assert.equal(route(c,host),groups.has(target)?target:'🚀 Proxies',host+' mask='+mask);
     }
   });
   test(script+' separates Hulu JP interfaces from the US list and preserves other service domains',()=>{

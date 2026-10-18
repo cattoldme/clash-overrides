@@ -9,13 +9,14 @@ const LOCAL_DNS = [
 ];
 const REMOTE_DNS = ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"];
 const AI_GEOSITES = ["openai", "google-gemini", "anthropic", "xai"];
-const LAN_DOMAINS = ["localhost", "lan", "local", "home.arpa"];
+const LAN_DOMAINS = ["localhost", "lan", "local", "home.arpa", "internal", "localdomain"];
 const BT_PROCESSES = [
-  "qbittorrent", "qbittorrent.exe", "Transmission", "Transmission.exe",
+  "qbittorrent", "qbittorrent.exe", "qbittorrent-nox", "Transmission", "Transmission.exe",
   "transmission-daemon", "transmission-qt", "transmission-qt.exe",
   "uTorrent", "uTorrent.exe", "BitComet", "BitComet.exe", "BitComet_x64.exe",
 ];
 const TEST_URL = "https://cp.cloudflare.com/generate_204";
+const DESKTOP_PROFILE = { autoInterval: 300, ruleInterval: 86400, gameInterval: 43200 };
 const GROUP = {
   Proxies: "🚀 Proxies",
   AI: "🤖 AI",
@@ -60,9 +61,6 @@ const BLACKMATRIX7_RULESETS = [
   "Pandora",
   "Niconico",
   "TVer",
-  "YouTube",
-  "Disney",
-  "HBO",
   "ParamountPlus",
   "TikTok",
   "Spotify",
@@ -86,42 +84,49 @@ const JAPAN_RULESETS = [
 ];
 const JAPAN_GEOSITES = ["unext", "radiko", "nhk", "dlsite"];
 
-function buildRuleProviders() {
+function buildRuleProviders(profile = DESKTOP_PROFILE) {
   const providers = {};
   for (const name of BLACKMATRIX7_RULESETS) {
-    // 这些项目的基础文件并非完整 classical；其余沿用原有维护源。
-    const file = ["Apple", "Global"].indexOf(name) >= 0
-      ? `${name}_Classical` : name;
     providers[name] = {
       type: "http",
       behavior: "classical",
       format: "yaml",
-      url: `https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/${name}/${file}.yaml`,
-      path: `./ruleset/blackmatrix7/${file}.yaml`,
-      interval: 86400,
+      url: `https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/${name}/${name}.yaml`,
+      path: `./ruleset/blackmatrix7/${name}.yaml`,
+      interval: profile.ruleInterval,
       proxy: GROUP.Proxies,
     };
   }
+  // 同上游完整名单的域名部分用域名树，其余 IP/关键词/进程仍保留 classical。
+  for (const name of ["Apple", "Global"]) {
+    providers[`${name}Domain`] = {
+      type: "http", behavior: "domain", format: "yaml",
+      url: `https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/${name}/${name}_Domain.yaml`,
+      path: `./ruleset/blackmatrix7/${name}_Domain.yaml`,
+      interval: profile.ruleInterval, proxy: GROUP.Proxies,
+    };
+  }
   // 域名名单避免将共享 AWS 区域、CDN 整个后缀归入流媒体。
-  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"], ["myTVSUPER", "mytvsuper"]]) {
+  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"],
+    ["myTVSUPER", "mytvsuper"], ["Disney", "disney"], ["HBO", "hbo"], ["YouTube", "youtube"]]) {
     providers[name] = {
       type: "http", behavior: "domain", format: "yaml",
       url: `https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/${category}.yaml`,
       path: `./ruleset/metacubex/${category}.yaml`,
-      interval: 86400, proxy: GROUP.Proxies,
+      interval: profile.ruleInterval, proxy: GROUP.Proxies,
     };
   }
   providers.Crunchyroll = {
     type: "http", behavior: "classical", format: "text",
     url: "https://raw.githubusercontent.com/liandu2024/clash/main/list/Crunchyroll.list",
     path: "./ruleset/liandu2024/Crunchyroll.list",
-    interval: 86400, proxy: GROUP.Proxies,
+    interval: profile.ruleInterval, proxy: GROUP.Proxies,
   };
   providers.Mora = {
     type: "http", behavior: "classical", format: "yaml",
     url: "https://raw.githubusercontent.com/Hawaiine/mihomo-rules/main/ruleset/mora/mora.yaml",
     path: "./ruleset/hawaiine/mora.yaml",
-    interval: 86400, proxy: GROUP.Proxies,
+    interval: profile.ruleInterval, proxy: GROUP.Proxies,
   };
   // Sukka maintains a dedicated game-content CDN list, including Steam depots.
   providers.GameDownload = {
@@ -130,7 +135,7 @@ function buildRuleProviders() {
     format: "text",
     url: "https://ruleset.skk.moe/Clash/domainset/game-download.txt",
     path: "./ruleset/sukkaw/GameDownload.txt",
-    interval: 43200,
+    interval: profile.gameInterval,
     proxy: GROUP.Proxies,
   };
   // This separate list contains Steam store and community hosts, not game depots.
@@ -140,7 +145,7 @@ function buildRuleProviders() {
     format: "yaml",
     url: "https://raw.githubusercontent.com/caserangle/clash-rule/main/steamstore.yaml",
     path: "./ruleset/caserangle/SteamWeb.yaml",
-    interval: 86400,
+    interval: profile.ruleInterval,
     proxy: GROUP.Proxies,
   };
   return providers;
@@ -161,6 +166,9 @@ function group(name, type, proxies, interval, tolerance, testUrl) {
     data.url = testUrl || TEST_URL;
     data.interval = interval == null ? 600 : interval;
     data.lazy = true;
+    data["expected-status"] = "204";
+    data.timeout = 5000;
+    data["max-failed-times"] = 5;
     if (type === "url-test") data.tolerance = tolerance == null ? 50 : tolerance;
   }
   return data;
@@ -207,15 +215,15 @@ function buildRules(japanTarget, regionTargets) {
     ["GEOSITE,private,DIRECT"],
     customRules(),
     // HuluUSA 上游也含日版接口，先固定到日本，防止误送美国。
-    [`DOMAIN-SUFFIX,prod.hjholdings.tv,${regionTargets.JP || "REJECT"}`],
+    [`DOMAIN-SUFFIX,prod.hjholdings.tv,${regionTargets.JP || GROUP.Proxies}`],
     JAPAN_RULESETS.map((name) => ruleSet(name, japanTarget)),
     JAPAN_GEOSITES.map((name) => `GEOSITE,${name},${japanTarget}`),
-    // 新增地区限定服务缺少对应节点时拒绝，不回退到其他地区。
-    [ruleSet("Mora", regionTargets.JP || "REJECT"),
-      ruleSet("HuluUSA", regionTargets.US || "REJECT"),
-      ruleSet("Peacock", regionTargets.US || "REJECT"),
-      ruleSet("Pandora", regionTargets.US || "REJECT"),
-      ruleSet("myTVSUPER", regionTargets.HK || "REJECT")]
+    // 地区限定服务缺少对应节点时统一回退到总代理。
+    [ruleSet("Mora", regionTargets.JP || GROUP.Proxies),
+      ruleSet("HuluUSA", regionTargets.US || GROUP.Proxies),
+      ruleSet("Peacock", regionTargets.US || GROUP.Proxies),
+      ruleSet("Pandora", regionTargets.US || GROUP.Proxies),
+      ruleSet("myTVSUPER", regionTargets.HK || GROUP.Proxies)]
   );
   return rules.concat([
     // Steam Web 中有 steamusercontent 的精确例外，应先于 SteamCN 的大后缀。
@@ -249,6 +257,7 @@ function buildRules(japanTarget, regionTargets) {
     ruleSet("BiliBili", GROUP.Bilibili),
     ruleSet("Bahamut", GROUP.Bahamut),
     ruleSet("Microsoft", GROUP.Microsoft),
+    ruleSet("AppleDomain", GROUP.Apple),
     ruleSet("Apple", GROUP.Apple),
     ruleSet("PayPal", GROUP.PayPal),
     ruleSet("PrivateTracker", "DIRECT"),
@@ -256,6 +265,7 @@ function buildRules(japanTarget, regionTargets) {
     ruleSet("Steam", GROUP.Steam),
     "GEOSITE,cn,DIRECT",
   ], BT_PROCESSES.map((name) => `PROCESS-NAME,${name},DIRECT`), [
+    ruleSet("GlobalDomain", GROUP.Proxies),
     ruleSet("Global", GROUP.Proxies),
     // 未分类域名此时才解析：先接住解析到内网的 NAS/自建域名，再判断中国 IP。
     // lan 是 Mihomo 内置判断，不依赖 GeoIP 数据库是否包含 private 分类。
@@ -266,20 +276,66 @@ function buildRules(japanTarget, regionTargets) {
   ]);
 }
 
+// 与内核域名树一致：从右向左比较，具体标签 > 单标签 * > 前导点通配。
+function dnsPolicyRank(pattern, domain) {
+  const parts = pattern.toLowerCase().split(".");
+  const labels = domain.split(".");
+  if (parts[0] === "+") {
+    if (parts.length - 1 === labels.length) parts.shift();
+    else parts[0] = "";
+  }
+  let rank = "";
+  let index = labels.length - 1;
+  for (let i = parts.length - 1; i >= 0; i--, index--) {
+    if (index < 0) return null;
+    if (i === 0 && parts[i] === "") return rank + "0";
+    if (parts[i] === labels[index]) rank += "2";
+    else if (parts[i] === "*") rank += "1";
+    else return null;
+  }
+  return index < 0 ? rank + "3" : null;
+}
+
 function configureDns(config) {
   const dns = config.dns;
   if (!dns || typeof dns !== "object" || Array.isArray(dns) || dns.enable === false) return;
   const local = LOCAL_DNS.slice();
   const remote = REMOTE_DNS.map((url) => `${url}#${GROUP.Proxies}`);
   // 清除会引用已被重建的规则集的旧 selector；保留具体域名/公司内网 DNS 映射。
-  const policy = {};
+  let policy = {};
   const previous = dns["nameserver-policy"] || {};
+  // 默认值先插入，已有的 .lan / *.lan / 精确域名仍按内核精度覆盖它们。
+  for (const domain of LAN_DOMAINS) {
+    const key = `+.${domain}`;
+    if (!Object.prototype.hasOwnProperty.call(previous, key)) policy[key] = ["system"];
+  }
   for (const key of Object.keys(previous)) {
     if (!/^(geosite|rule-set):/i.test(key)) policy[key] = previous[key];
   }
-  for (const domain of LAN_DOMAINS) policy[`+.${domain}`] = ["system"];
-  for (const domain of domainList(CUSTOM_DIRECT_DOMAINS)) policy[`+.${domain}`] = local;
-  for (const domain of domainList(CUSTOM_PROXY_DOMAINS)) policy[`+.${domain}`] = remote;
+  // 自定义直连沿用已有的具体域名/父域 DNS，避免把内网域名送到公共 DNS。
+  const direct = {};
+  for (const domain of domainList(CUSTOM_DIRECT_DOMAINS)) {
+    let servers = local;
+    let matchedRank = "";
+    for (const key of Object.keys(policy)) {
+      for (const pattern of key.split(",")) {
+        const rank = dnsPolicyRank(pattern, domain);
+        if (rank !== null && rank >= matchedRank) {
+          servers = policy[key];
+          matchedRank = rank;
+        }
+      }
+    }
+    const key = `+.${domain}`;
+    if (!Object.prototype.hasOwnProperty.call(policy, key)) direct[key] = servers;
+  }
+  // 只补未覆盖的节点；后插入的原策略保留根域/子域各自的 DNS。
+  policy = Object.assign({}, direct, policy);
+  for (const domain of domainList(CUSTOM_PROXY_DOMAINS)) {
+    const key = `+.${domain}`;
+    delete policy[key];
+    policy[key] = remote;
+  }
   // Mihomo 按策略段首次命中；具体域名与自定义例外必须排在分类之前。
   policy["geosite:private"] = ["system"];
   for (const name of AI_GEOSITES) policy[`geosite:${name}`] = remote;
@@ -314,17 +370,63 @@ function configureDns(config) {
   }
 }
 
-function retainDnsDependencies(config, dns, groups, providers) {
+// 仅解析保留的子规则依赖；逻辑/正则规则的出口位于末尾，普通规则在第三项。
+function retainedRuleDependencies(rule, needed, checkExit, hasTarget = true) {
+  const parts = rule.split(",").map((part) => part.trim());
+  const type = parts[0].toUpperCase();
+  const complex = ["AND", "OR", "NOT", "SUB-RULE", "DOMAIN-REGEX", "PROCESS-NAME-REGEX", "PROCESS-PATH-REGEX"].indexOf(type) >= 0;
+  if (hasTarget && type !== "SUB-RULE") {
+    checkExit(type === "MATCH" ? parts[1] : complex ? parts[parts.length - 1] : parts[2]);
+  }
+  if (type === "RULE-SET") needed.add(parts[1]);
+  if (["AND", "OR", "NOT", "SUB-RULE"].indexOf(type) < 0) return;
+  const payload = parts.slice(1, hasTarget ? -1 : undefined).join(",").slice(1, -1);
+  if (type === "SUB-RULE") {
+    retainedRuleDependencies(payload, needed, checkExit, false);
+    return;
+  }
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i <= payload.length; i++) {
+    if (payload[i] === "(") depth++;
+    if (payload[i] === ")") depth--;
+    if (i === payload.length || (payload[i] === "," && depth === 0)) {
+      retainedRuleDependencies(payload.slice(start, i).trim().slice(1, -1), needed, checkExit, false);
+      start = i + 1;
+    }
+  }
+}
+
+function retainDnsDependencies(config, dns, groups, providers, extraNeeded = []) {
   // 内核在 DNS 关闭时也会解析这些引用，依赖检查不能随开关跳过。
-  if (!dns || typeof dns !== "object" || Array.isArray(dns)) return;
+  if (!dns || typeof dns !== "object" || Array.isArray(dns)) {
+    dns = {};
+  }
   const oldGroups = new Set((config["proxy-groups"] || []).map((entry) => entry.name));
   const targets = new Set(groups.map((entry) => entry.name).concat(config.proxies.map((entry) => entry.name)));
   function checkExit(name) {
     if (oldGroups.has(name) && !targets.has(name) && name !== "DIRECT" && name !== "REJECT") {
-      throw new Error(`DNS 出口 ${name} 引用将被删除的旧策略组，请先迁移该出口`);
+      throw new Error(`DNS/规则集下载出口 ${name} 引用将被删除的旧策略组，请先迁移该出口`);
     }
   }
-  const needed = new Set();
+  const needed = new Set(extraNeeded);
+  const valid = new Set(Array.from(targets).concat(["DIRECT", "REJECT", "REJECT-DROP", "COMPATIBLE", "PASS", "PASS-RULE", "GLOBAL"]));
+  function checkFixedExit(name) {
+    if (name && !valid.has(name)) throw new Error(`保留配置的出口 ${name} 不存在，请先迁移该出口`);
+  }
+  for (const listener of config.listeners || []) checkFixedExit(listener.proxy);
+  for (const tunnel of config.tunnels || []) {
+    checkFixedExit(typeof tunnel === "string" ? (tunnel.split(",")[3] || "").trim() : tunnel.proxy);
+  }
+  if (config.ntp) checkFixedExit(config.ntp["dialer-proxy"]);
+  for (const tun of [config.tun].concat((config.listeners || []).filter((entry) => entry.type === "tun"))) {
+    for (const field of ["route-address-set", "route-exclude-address-set"]) {
+      for (const name of (tun && tun[field]) || []) needed.add(name);
+    }
+  }
+  for (const name of Object.keys(config["sub-rules"] || {})) {
+    for (const rule of config["sub-rules"][name]) retainedRuleDependencies(rule, needed, checkFixedExit);
+  }
   for (const field of ["nameserver-policy", "proxy-server-nameserver-policy"]) {
     const policy = dns[field] || {};
     for (const key of Object.keys(policy)) {
@@ -357,19 +459,19 @@ function retainDnsDependencies(config, dns, groups, providers) {
       if (Object.prototype.hasOwnProperty.call(previous, name)
           && (Object.keys(previous[name]).length !== Object.keys(providers[name]).length
             || Object.keys(providers[name]).some((key) => JSON.stringify(previous[name][key]) !== JSON.stringify(providers[name][key])))) {
-        throw new Error(`DNS 规则集 ${name} 与内置规则集重名，请先重命名自定义规则集`);
+        throw new Error(`规则集 ${name} 与内置规则集重名，请先重命名自定义规则集`);
       }
       continue;
     }
     if (!Object.prototype.hasOwnProperty.call(previous, name)) {
-      throw new Error(`DNS 引用缺失的规则集 ${name}，请先补齐该规则集`);
+      throw new Error(`配置引用缺失的规则集 ${name}，请先补齐该规则集`);
     }
     if (previous[name].proxy) checkExit(previous[name].proxy);
     providers[name] = previous[name];
   }
 }
 
-function main(config) {
+function transform(config, profile = DESKTOP_PROFILE) {
   // 空输入、provider-only 和混合订阅不重建，避免丢掉 provider 中的节点。
   if (!config || typeof config !== "object" || !Array.isArray(config.proxies)) return config;
   if (config["proxy-providers"] && Object.keys(config["proxy-providers"]).length) return config;
@@ -409,11 +511,12 @@ function main(config) {
 
   const commonRegions = existing(byCountryNodes, ["HK", "JP", "SG", "US", "TW"]);
   // 五个地区已有独立组，手选仅列出其余节点。
-  const manualNodes = nodes.filter((name) => !commonRegions.some((code) => byCountryNodes[code].includes(name)));
-  let autoNodes = [];
-  for (const code of commonRegions) autoNodes = autoNodes.concat(byCountryNodes[code]);
-  if (!autoNodes.length) autoNodes = nodes;
-  autoNodes = Array.from(new Set(autoNodes));
+  const groupedNodes = new Set();
+  for (const code of commonRegions) {
+    for (const name of byCountryNodes[code]) groupedNodes.add(name);
+  }
+  const manualNodes = nodes.filter((name) => !groupedNodes.has(name));
+  const autoNodes = groupedNodes.size ? Array.from(groupedNodes) : nodes.slice();
 
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
   // 应用选择顺序统一为总代理、已有地区、手选；默认跟随总代理。
@@ -436,21 +539,31 @@ function main(config) {
     group(GROUP.Apple, "select", ["DIRECT", GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "JP", "SG", "US"]).map((code) => byCountryGroups[code]))),
     group(GROUP.PayPal, "select", ["DIRECT", GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "US", "SG"]).map((code) => byCountryGroups[code]))),
     group(GROUP.Final, "select", [GROUP.Proxies, "DIRECT", GROUP.Manual]),
-    group(GROUP.Auto, "url-test", autoNodes, 300, 80),
-    group(GROUP.Fallback, "fallback", autoNodes, 300),
+    group(GROUP.Auto, "url-test", autoNodes, profile.autoInterval, 80),
+    group(GROUP.Fallback, "fallback", autoNodes, profile.autoInterval),
     group(GROUP.Manual, "select", manualNodes.length ? manualNodes : ["REJECT"]),
   ].concat(countryGroups);
 
-  const providers = buildRuleProviders();
+  const providers = buildRuleProviders(profile);
   const dnsConfig = { dns: config.dns && typeof config.dns === "object" && !Array.isArray(config.dns)
     ? Object.assign({}, config.dns) : config.dns };
   configureDns(dnsConfig);
   // 先检查保留字段的依赖，错误输入不能留下已修改一半的配置。
-  retainDnsDependencies(config, dnsConfig.dns, groups, providers);
+  const snifferDependencies = [];
+  for (const field of ["force-domain", "skip-domain", "skip-src-address", "skip-dst-address"]) {
+    for (const value of (config.sniffer && config.sniffer[field]) || []) {
+      if (/^rule-set:/i.test(value)) snifferDependencies.push(...value.slice(9).split(","));
+    }
+  }
+  retainDnsDependencies(config, dnsConfig.dns, groups, providers, snifferDependencies);
   config["proxy-groups"] = groups;
   config["rule-providers"] = providers;
   // 缺少日本节点时改走总代理，避免引用不存在的地区组。
   config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies, byCountryGroups);
   if (config.dns) config.dns = dnsConfig.dns;
   return config;
+}
+
+function main(config) {
+  return transform(config);
 }

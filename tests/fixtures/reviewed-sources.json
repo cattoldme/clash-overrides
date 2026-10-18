@@ -1,0 +1,64 @@
+{
+  "captured": "2026-10-18",
+  "repositories": {
+    "blackmatrix7/ios_rule_script": "7dd06b44f5093dd5404e1e5f3bca5452d97146ef",
+    "MetaCubeX/meta-rules-dat": "1852a7d214920d77c753293c49eb26a996e52081"
+  },
+  "files": {
+    "global-classical.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Global/Global_Classical.yaml",
+      "sha256": "9e1c1c88ca6c65bfd6e479337eae009c0807a9e2a80ce9ac35de5e9b33f76ff2",
+      "count": 35190
+    },
+    "global-domain.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Global/Global_Domain.yaml",
+      "sha256": "fc0d83c9e9b191215023a5e3ec436f210194a8da3dec13b4d7d340d35fe4c8f6",
+      "count": 35034
+    },
+    "global-residual.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Global/Global.yaml",
+      "sha256": "b1f55da70a1a1210bb99c50c018deab878b58fcef0dcb57704c739d669213b1c",
+      "count": 156
+    },
+    "apple-classical.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Apple/Apple_Classical.yaml",
+      "sha256": "d164ee32796b85a59e769ce48bd8f31ae2cbd792e45b05bf04c76883efa26899",
+      "count": 1593
+    },
+    "apple-domain.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Apple/Apple_Domain.yaml",
+      "sha256": "daa8877d68659d5c9a0ccc149bb19dee274104ddc6aa574fba0ec3084110cb2c",
+      "count": 1560
+    },
+    "apple-residual.yaml": {
+      "url": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/Apple/Apple.yaml",
+      "sha256": "9f81f8e6ee8485d4553544d7dcefd6e4b2e9534f6306c7e4ee38427a20898de1",
+      "count": 33
+    },
+    "disney.yaml": {
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/1852a7d214920d77c753293c49eb26a996e52081/geo/geosite/disney.yaml",
+      "sha256": "21fee1a588ef81d49cb45714f7efa4d85c05af2b315443f6d55a4fbab6168391",
+      "count": 224
+    },
+    "hbo.yaml": {
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/1852a7d214920d77c753293c49eb26a996e52081/geo/geosite/hbo.yaml",
+      "sha256": "cbc98f5511023616dd4d169012978b9dd13d218b7cae0eae85ab0f5266a47ff1",
+      "count": 65
+    },
+    "youtube.yaml": {
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/1852a7d214920d77c753293c49eb26a996e52081/geo/geosite/youtube.yaml",
+      "sha256": "ec32854438b8ad4e2f2f2ee0d578834c667f1d0cec4c82357e34629452d2fc5d",
+      "count": 178
+    }
+  },
+  "splits": {
+    "Global": {
+      "count": 35190,
+      "canonical_sha256": "c21b08ae0389bdbfbcecb809adf31ea248196d7205493261b7a6a671d3aee07e"
+    },
+    "Apple": {
+      "count": 1593,
+      "canonical_sha256": "6d09f9b0192ead454858090c72d2974508b8a492f4cd4d61464b31f1bd06a6b6"
+    }
+  }
+}

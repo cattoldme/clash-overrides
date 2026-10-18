@@ -25,7 +25,7 @@ test('single file supplies DNS and full geodata without a companion YAML', () =>
   assert.equal(out['geo-update-interval'], 24);
   assert(out['geox-url']['geo-site'].endsWith('/geosite.dat'));
   assert(out.dns.fallback.every(url => url.endsWith('#🚀 Proxies')));
-  assert.equal(out.rules.length, 84);
+  assert(out.rules.includes('RULE-SET,GlobalDomain,🚀 Proxies,no-resolve'));
 });
 test('keeps nodes, hosts and client switches while adding nested defaults', () => {
   const config = {...input(), mode: 'rule', ipv6: true, 'mixed-port': 7890,
@@ -38,6 +38,16 @@ test('keeps nodes, hosts and client switches while adding nested defaults', () =
   assert.equal(out.profile.tracing, false);
   assert.equal(out.profile['store-fake-ip'], true);
   assert.deepEqual(config, original);
+});
+
+test('intercepts both UDP and TCP DNS while preserving the client TUN switch', () => {
+  for (const enabled of [true, false, undefined]) {
+    const config = input();
+    if (enabled !== undefined) config.tun = {enable: enabled};
+    const out = plain(load()(config));
+    assert.deepEqual(out.tun['dns-hijack'], ['any:53', 'tcp://any:53']);
+    assert.equal(out.tun.enable, enabled);
+  }
 });
 test('preserves private DNS and blacklist compatibility entries', () => {
   const config = {...input(), dns: {'nameserver-policy': {'+.office.example': ['192.0.2.53']},
@@ -81,6 +91,30 @@ test('changes to one result do not leak into later subscriptions', () => {
   first.tun['dns-hijack'].push('tcp://192.0.2.1:53');
   first.dns['fake-ip-filter'].push('+.private.example');
   const second = plain(run(input()));
-  assert.deepEqual(second.tun['dns-hijack'], ['any:53']);
+  assert.deepEqual(second.tun['dns-hijack'], ['any:53', 'tcp://any:53']);
   assert(!second.dns['fake-ip-filter'].includes('+.private.example'));
 });
+
+for (const [field, change] of [
+  ['TUN address list', config => config.tun['route-exclude-address'].push('10.0.0.0/8')],
+  ['domain DNS list', config => config.dns['nameserver-policy']['+.corp.example'].push('192.168.1.54')],
+  ['node DNS policy', config => { config.dns['proxy-server-nameserver-policy']['other.example'] = ['192.168.1.54']; }],
+]) {
+  for (const direction of ['output to input', 'input to output']) {
+    test('standalone isolates '+field+' changes from '+direction, () => {
+      const config = {...input(), tun: {enable: false, 'route-exclude-address': ['192.168.0.0/16']},
+        dns: {'nameserver-policy': {'+.corp.example': ['192.168.1.53']},
+          'proxy-server-nameserver-policy': {'node.example': ['192.168.1.53']}}};
+      const before = plain(config);
+      const out = load()(config);
+      const expected = plain(out);
+      if (direction === 'output to input') {
+        change(out);
+        assert.deepEqual(config, before);
+      } else {
+        change(config);
+        assert.deepEqual(plain(out), expected);
+      }
+    });
+  }
+}
