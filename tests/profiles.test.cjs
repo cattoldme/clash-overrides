@@ -29,13 +29,13 @@ function compareProfiles(config,setup='') {
   mobile['geo-update-interval']=24;
   for(const group of mobile['proxy-groups']) {
     if(group.type==='select')continue;
-    const global=['⚡ Auto','🔁 Fallback'].includes(group.name);
+    const global=['Auto','Fallback'].includes(group.name);
     assert.equal(group.interval,global?900:600);
     assert.equal(group['expected-status'],'204');
     assert.equal(group.timeout,5000);
     assert.equal(group['max-failed-times'],5);
     assert.equal(group.lazy,true);
-    if(group.type==='url-test')assert.equal(group.tolerance,group.name==='⚡ Auto'?80:50);
+    if(group.type==='url-test')assert.equal(group.tolerance,group.name==='Auto'?80:50);
     group.interval=global?300:600;
   }
   for(const [name,provider] of Object.entries(mobile['rule-providers'])) {

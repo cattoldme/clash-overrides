@@ -77,7 +77,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     const out=load(script,'CUSTOM_DIRECT_DOMAINS.push("public.example","corp.example");CUSTOM_PROXY_DOMAINS.push("corp.example")')(c);
     assert.deepEqual(out.dns['nameserver-policy']['+.public.example'],out.dns.nameserver);
     assert.deepEqual(out.dns['nameserver-policy']['+.corp.example'],out.dns.fallback);
-    assert(out.rules.includes('DOMAIN-SUFFIX,corp.example,🚀 Proxies'));
+    assert(out.rules.includes('DOMAIN-SUFFIX,corp.example,Proxies'));
   });
   for(const [mode,rule] of [
     ['rule','rule-set,Private,real-ip'],

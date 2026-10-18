@@ -24,8 +24,8 @@ test('single file supplies DNS and full geodata without a companion YAML', () =>
   assert.equal(out['geo-auto-update'], true);
   assert.equal(out['geo-update-interval'], 24);
   assert(out['geox-url']['geo-site'].endsWith('/geosite.dat'));
-  assert(out.dns.fallback.every(url => url.endsWith('#🚀 Proxies')));
-  assert(out.rules.includes('RULE-SET,GlobalDomain,🚀 Proxies,no-resolve'));
+  assert(out.dns.fallback.every(url => url.endsWith('#Proxies')));
+  assert(out.rules.includes('RULE-SET,GlobalDomain,Proxies,no-resolve'));
 });
 test('keeps nodes, hosts and client switches while adding nested defaults', () => {
   const config = {...input(), mode: 'rule', ipv6: true, 'mixed-port': 7890,

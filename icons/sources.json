@@ -1,0 +1,126 @@
+{
+  "style": "C: brand colors, light outline functions, color flags",
+  "processing": "Transparent margins trimmed, aspect ratio preserved, centered on a 128x128 PNG canvas. Lucide stroke #e4e5ec.",
+  "icons": {
+    "Proxies": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/network.svg",
+      "source_sha256": "bf34d01a0c245d1b4e1990dda36a0096d472f0fe7bc51c6ba7178af720bdc87a",
+      "sha256": "554e2e3c50740921074649a15ebf87b6f2367225624243bfcc3ac01baa84044c"
+    },
+    "AI": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sparkles.svg",
+      "source_sha256": "2bc2eb1e3c09dd04b79d814ce94fec1834282a55668a086c980eabd25ad3ace3",
+      "sha256": "9ee3a3ae6552854c678809f220a3f8b81881f523243144d6ecca937a6617c8c4"
+    },
+    "TikTok": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/TikTok.png",
+      "source_sha256": "a60f7e5520fc58e894b7dbc596972787c1d1403ee1251cee1cad700c0847c587",
+      "sha256": "a25d065d5fe06ab1eb0b9d3e87b1150ca2d4ab480911846e609f15f9c773a154"
+    },
+    "Spotify": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Spotify.png",
+      "source_sha256": "af656084c22d2409c989b20c89a4526af114aeb55b0e3b97484a40feff304ffb",
+      "sha256": "975c930ee7e9c01ef80e1e17e89f6e1c61c072b7bb9e5b8478561e2b55795520"
+    },
+    "Streaming": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/clapperboard.svg",
+      "source_sha256": "a4da77d84eb1172f3dccd36b9da8cffc6ffee02e3fbe93ae45d1059a37893b35",
+      "sha256": "9874103640f979a8cc9ca195f096b52d95c7548e59ed0fd83296ea8b9ea5d5bf"
+    },
+    "YouTube": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/YouTube.png",
+      "source_sha256": "1ff428e8f81e5b959cd7a1181f9f7279315e5d04de3b052886fc60834c28529d",
+      "sha256": "fe07b62332f3ab4f351a22eae50f87964e328eca3d0b6bc69f5930810f197f7f"
+    },
+    "Telegram": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Telegram.png",
+      "source_sha256": "1af4c3abe4f3be8f1fa1677302aa40e7fb509b89707fbd79f07d209c36ba970e",
+      "sha256": "f1819430115b51e32686bdcd24eb53127715497e070ce83185c448066b1a0a48"
+    },
+    "Google": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Google_Search.png",
+      "source_sha256": "0202f62f8faab076d7e2ff823e1bd07973bd5cdafff787cfe245c2c5f0b5484e",
+      "sha256": "0eef80484372ab41404de972d7ad746a4d89b8aeb5a23309e8eb315d78cdc5e6"
+    },
+    "GitHub": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/GitHub.png",
+      "source_sha256": "9fb913b9abee0f0152a9acc6772e89762a071f5a9bd706420f5768e96cb24481",
+      "sha256": "11da2435e1e09da48e039a292e6819d341fc912e92ae4dc44daa84db6422941c"
+    },
+    "Steam": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Steam.png",
+      "source_sha256": "dcc4adb21cc434c02df2dd15512c10a8838e46fe033c520e7eb51d0769876e17",
+      "sha256": "e664370113e36b47cf53b233e3b23201efd961c7472d84bfc2dfe793f91acddf"
+    },
+    "Bilibili": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/bilibili.png",
+      "source_sha256": "c3f28b1464ac9b8d01ca44b83e6d51d84d65fb4465141f3f380db59e6db4c461",
+      "sha256": "a8eb2661eaec030eca955e9cc560f66ed789ee9fdd1ed48cabd9a1b377f8e341"
+    },
+    "Bahamut": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Bahamut.png",
+      "source_sha256": "4a80298ad9b0f01e62c935d54ae9b9a9b0ccab9ec077eaf50c519652e3d87e94",
+      "sha256": "9cbc37e1e922d520785e208e80943813cac092e99db94e23403ccfbd18502aae"
+    },
+    "Microsoft": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Microsoft.png",
+      "source_sha256": "31eb37edea6b63e72e0e7af7893b32a53f2df8c78d2edfb3fdfc02376b2b0bcf",
+      "sha256": "491a5ec2d72f01966591b96ac19d6611c4ee71906717f819d1e52271e8995630"
+    },
+    "Apple": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Apple_1.png",
+      "source_sha256": "6926557c7f122c72830bd936e1f72c13ac670df17d11a3bacdc4fec3e1bfbe13",
+      "sha256": "6395fd0caed508559b1ddbc7da0a5e5495daa6f17a3256c045c513115c0b8ff7"
+    },
+    "PayPal": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/PayPal.png",
+      "source_sha256": "3523f042f51164e2936c85d152f9ff98ff4f9aa992ab8969ce111573c0202e43",
+      "sha256": "fc41a5905877cf13c68b977e44bd09c9702050784771e8009d40782a482594b6"
+    },
+    "Final": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/route.svg",
+      "source_sha256": "64fc8472b0e71981e79ed296962d87eea80047efc39ceda17fe69e41cf3b8811",
+      "sha256": "37d105a655f3eecdc29bc0693d191abb5babb833fcc0cb1d79acdb9d4450401f"
+    },
+    "Auto": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/zap.svg",
+      "source_sha256": "5097e790bba163d1a6cb364276053b216fa7b75e3a0739f4db68473a2b54a922",
+      "sha256": "799bad9e3da15eea7d45f3ef24f9590fb7964dad70bd0b2bd9b71df5aa87f887"
+    },
+    "Fallback": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/arrow-left-right.svg",
+      "source_sha256": "c9f6f0d09b52073cbd5fc6dc32b092561e72f2849f0bceef8dfa219ac9d965e3",
+      "sha256": "af76dd4af987e208dd57d4585195de04e45ed524095a544c77a6ecb5b20b0145"
+    },
+    "Manual": {
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sliders-horizontal.svg",
+      "source_sha256": "b016af850e92e270ecbdc111aaf48c7b49f7ee50e084617b4888eba526ea86d1",
+      "sha256": "fb8d7f1ece98471647e63cc17231357e7b2cd2385833ab0781590bea4d7eea9a"
+    },
+    "HK": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Hong_Kong.png",
+      "source_sha256": "eacee82c61b21e7a926b4f393403bf8f783b3109352b7dbd20b6ffd9c0d742c2",
+      "sha256": "9d9a79f6f00e11ee1d3536a16944b77cd2c6b989ac65cbef3e3e1560784684a7"
+    },
+    "JP": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png",
+      "source_sha256": "59e351aab014850cd4b2a26fd17ce6a993649fffb44d8956c6635838432e0d82",
+      "sha256": "747ca917d385fce7bb62c255f6faad85d1d805fb4256e16d3dfcaf59e7bb6fc8"
+    },
+    "SG": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Singapore.png",
+      "source_sha256": "192249f40299813067a960ad964093a6dbfa965e2509d0b4ddf920eb4a1441cd",
+      "sha256": "19cd41b7df9027b7155c50b2ea2a445df68eab0643f2772125df5916ccc7163a"
+    },
+    "TW": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Taiwan.png",
+      "source_sha256": "c40a38fdba600cffe8471ada64b294744211f233a650140650c67bd26b4b0e37",
+      "sha256": "b00fa97e61ea3adb4127daec5967299aa55eca1030c1123a0bd5669b8aaff413"
+    },
+    "US": {
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/United_States.png",
+      "source_sha256": "63d7c028ea38626029cc968ff93ee63eee6672fab1750ccbda1ad1eabebc5f5a",
+      "sha256": "1a64fb9bed162fa80cf7061068fc25c8eb8f049f64055219f8dee57c26b23c23"
+    }
+  }
+}

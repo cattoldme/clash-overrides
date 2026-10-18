@@ -128,7 +128,7 @@ class KernelTests(unittest.TestCase):
                               if not key.startswith(('geosite:','rule-set:'))}
                     port=free_port(socket.SOCK_DGRAM)
                     native=base_config()
-                    native['proxy-groups']=[{'name':'🚀 Proxies','type':'select','proxies':['DIRECT']}]
+                    native['proxy-groups']=[{'name':'Proxies','type':'select','proxies':['DIRECT']}]
                     native['dns']={'enable':True,'listen':'127.0.0.1:'+str(port),
                         'enhanced-mode':'redir-host','use-hosts':False,'use-system-hosts':False,
                         'nameserver':[public],'nameserver-policy':ordinary}

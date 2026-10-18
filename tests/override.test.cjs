@@ -20,19 +20,19 @@ function input(names = ['香港 01', '日本 01', '新加坡 01', '美国 01', '
 function output(names) {return plain(load()(input(names)));}
 test('Google offers region groups like YouTube instead of individual nodes',()=>{
   const c=output();
-  const google=c['proxy-groups'].find(g=>g.name==='🔎 Google');
-  const youtube=c['proxy-groups'].find(g=>g.name==='📺 YouTube');
+  const google=c['proxy-groups'].find(g=>g.name==='Google');
+  const youtube=c['proxy-groups'].find(g=>g.name==='YouTube');
   assert.equal(google.type,'select');
-  assert.deepEqual(google.proxies,['🚀 Proxies','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW','🧭 Manual']);
+  assert.deepEqual(google.proxies,['Proxies','HK','JP','SG','US','TW','Manual']);
   assert.deepEqual(new Set(google.proxies),new Set(youtube.proxies));
   assert(!google.proxies.some(name=>c.proxies.some(node=>node.name===name)));
 });
 test('Prime Video uses narrow maintained domain rules before China and Global',()=>{
   const c=output();
-  const rule='RULE-SET,AmazonPrimeVideo,🎬 Streaming,no-resolve';
+  const rule='RULE-SET,AmazonPrimeVideo,Streaming,no-resolve';
   assert(c.rules.includes(rule));
   assert(c.rules.indexOf(rule)<c.rules.indexOf('GEOSITE,cn,DIRECT'));
-  assert(c.rules.indexOf(rule)<c.rules.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve'));
+  assert(c.rules.indexOf(rule)<c.rules.indexOf('RULE-SET,Global,Proxies,no-resolve'));
   const provider=c['rule-providers'].AmazonPrimeVideo;
   assert.equal(provider.behavior,'domain');
   assert.equal(provider.interval,86400);
@@ -72,34 +72,34 @@ test('LAN IP rules precede services and do not resolve',()=>{
 test('only final IP fallback is allowed to initiate routing resolution',()=>{
   const c=output();
   for(const r of c.rules.filter(r=>r.startsWith('RULE-SET,'))) assert(r.endsWith(',no-resolve'),r);
-  assert.deepEqual(c.rules.slice(-2),['GEOIP,CN,DIRECT','MATCH,🔚 Final']);
+  assert.deepEqual(c.rules.slice(-2),['GEOIP,CN,DIRECT','MATCH,Final']);
 });
 test('known foreign domains precede resolving China IP fallback',()=>{
   const r=output().rules;
-  assert(r.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve')<r.indexOf('GEOIP,CN,DIRECT'));
+  assert(r.indexOf('RULE-SET,Global,Proxies,no-resolve')<r.indexOf('GEOIP,CN,DIRECT'));
 });
 test('reuse full geosite cn and remove duplicate/broad providers',()=>{
   const c=output();assert(c.rules.includes('GEOSITE,cn,DIRECT'));
   for(const key of ['Lan','Download','China','OpenAI']) assert(!Object.hasOwn(c['rule-providers'],key),key);
 });
 test('OpenAI uses maintained domain categories, not shared ASN rules',()=>{
-  const r=output().rules;assert(r.includes('GEOSITE,openai,🤖 AI'));
+  const r=output().rules;assert(r.includes('GEOSITE,openai,AI'));
   assert(!r.some(x=>x.startsWith('IP-ASN,')||x.includes('DOMAIN-KEYWORD,openai')));
 });
 test('four AI categories precede Microsoft and Google',()=>{
   const r=output().rules;
   for(const category of ['openai','google-gemini','anthropic','xai']) {
-    const i=r.indexOf('GEOSITE,'+category+',🤖 AI');
-    assert(i>=0 && i<r.indexOf('RULE-SET,Microsoft,🪟 Microsoft,no-resolve'));
-    assert(i<r.indexOf('RULE-SET,Google,🔎 Google,no-resolve'));
+    const i=r.indexOf('GEOSITE,'+category+',AI');
+    assert(i>=0 && i<r.indexOf('RULE-SET,Microsoft,Microsoft,no-resolve'));
+    assert(i<r.indexOf('RULE-SET,Google,Google,no-resolve'));
   }
 });
 
 test('Steam CDN stays direct; store rules beat broad Steam matching',()=>{
   const r=output().rules;
-  const store=r.indexOf('RULE-SET,SteamWeb,🎮 Steam,no-resolve');
+  const store=r.indexOf('RULE-SET,SteamWeb,Steam,no-resolve');
   const cdn=r.indexOf('RULE-SET,SteamCN,DIRECT,no-resolve');
-  const steam=r.indexOf('RULE-SET,Steam,🎮 Steam,no-resolve');
+  const steam=r.indexOf('RULE-SET,Steam,Steam,no-resolve');
   assert(store>=0 && cdn>store && steam>cdn);
   assert(r.includes('RULE-SET,GameDownload,DIRECT,no-resolve'));
   assert(!r.includes('PROCESS-NAME,steam.exe,DIRECT'));
@@ -111,12 +111,12 @@ test('only dedicated torrent process fallback, no general download bypass',()=>{
   assert(r.indexOf('GEOSITE,cn,DIRECT')<r.indexOf('PROCESS-NAME,qbittorrent.exe,DIRECT'));
 });
 test('domestic-oriented groups still default direct',()=>{
-  const c=output();for(const name of ['📺 Bilibili','🪟 Microsoft','🍎 Apple','💳 PayPal'])
+  const c=output();for(const name of ['Bilibili','Microsoft','Apple','PayPal'])
     assert.equal(c['proxy-groups'].find(g=>g.name===name).proxies[0],'DIRECT');
 });
 test('explicitly routed encrypted foreign DNS, domestic DNS and bootstrap',()=>{
   const d=output().dns;assert(d.fallback.length>=2);
-  for(const s of d.fallback) assert(s.startsWith('https://')&&s.endsWith('#🚀 Proxies'),s);
+  for(const s of d.fallback) assert(s.startsWith('https://')&&s.endsWith('#Proxies'),s);
   for(const key of ['nameserver','direct-nameserver','proxy-server-nameserver'])
     assert(d[key].length>=2 && d[key].every(s=>s.endsWith('#DIRECT')));
   assert.equal(d['respect-rules'],false);
@@ -158,7 +158,7 @@ test('duplicate nodes rejected before mutating config',()=>{
   const c=input(['日本','日本']);const before=plain(c);assert.throws(()=>load()(c),/重名|duplicate/i);assert.deepEqual(c,before);
 });
 test('generated group/node name collision rejected',()=>{
-  assert.throws(()=>load()(input(['🚀 Proxies'])),/冲突|collision/i);
+  assert.throws(()=>load()(input(['Proxies'])),/冲突|collision/i);
 });
 test('node credentials and client mode/TUN/ports are not rewritten',()=>{
   const c=input();const nodes=plain(c.proxies);c.mode='global';c.tun.enable=true;
@@ -172,12 +172,12 @@ test('unused group probes are lazy',()=>{
   for(const g of output()['proxy-groups'].filter(g=>g.type==='url-test'||g.type==='fallback')) assert.equal(g.lazy,true);
 });
 test('country flags do not misclassify AUS or RUS as US',()=>{
-  const c=output(['AUS Sydney','RUS Moscow','日本 01']);assert(!c['proxy-groups'].some(g=>g.name==='🇺🇸 US'));
+  const c=output(['AUS Sydney','RUS Moscow','日本 01']);assert(!c['proxy-groups'].some(g=>g.name==='US'));
 });
 test('user overrides affect both traffic and DNS; proxy override wins conflicts',()=>{
   const c=plain(load('CUSTOM_DIRECT_DOMAINS.push("assets.example.com");CUSTOM_PROXY_DOMAINS.push("secure.example.com");')(input()));
   assert(c.rules.includes('DOMAIN-SUFFIX,assets.example.com,DIRECT'));
-  assert(c.rules.includes('DOMAIN-SUFFIX,secure.example.com,🚀 Proxies'));
+  assert(c.rules.includes('DOMAIN-SUFFIX,secure.example.com,Proxies'));
   assert.deepEqual(c.dns['nameserver-policy']['+.assets.example.com'],c.dns.nameserver);
   assert.deepEqual(c.dns['nameserver-policy']['+.secure.example.com'],c.dns.fallback);
 });
@@ -195,7 +195,7 @@ for(const [domain,selector,direct] of [
     const key='+.'+domain;
     assert(keys.indexOf(key)>=0 && keys.indexOf(key)<keys.indexOf(selector),key+' must precede '+selector);
     assert.deepEqual(policy[key],direct?out.dns.nameserver:out.dns.fallback);
-    assert(out.rules.includes('DOMAIN-SUFFIX,'+domain+','+(direct?'DIRECT':'🚀 Proxies')));
+    assert(out.rules.includes('DOMAIN-SUFFIX,'+domain+','+(direct?'DIRECT':'Proxies')));
   }
 });
 test('custom domain must not inject malformed rule text',()=>{
@@ -203,11 +203,11 @@ test('custom domain must not inject malformed rule text',()=>{
 });
 test('more-specific custom domain wins consistently with DNS suffix policy',()=>{
   const c=plain(load('CUSTOM_PROXY_DOMAINS.push("example.com");CUSTOM_DIRECT_DOMAINS.push("cdn.example.com");')(input()));
-  assert(c.rules.indexOf('DOMAIN-SUFFIX,cdn.example.com,DIRECT')<c.rules.indexOf('DOMAIN-SUFFIX,example.com,🚀 Proxies'));
+  assert(c.rules.indexOf('DOMAIN-SUFFIX,cdn.example.com,DIRECT')<c.rules.indexOf('DOMAIN-SUFFIX,example.com,Proxies'));
 });
 test('same custom suffix listed twice resolves to proxy once',()=>{
   const c=plain(load('CUSTOM_PROXY_DOMAINS.push("same.example");CUSTOM_DIRECT_DOMAINS.push("same.example");')(input()));
-  const r=c.rules.filter(r=>r.includes(',same.example,'));assert.deepEqual(r,['DOMAIN-SUFFIX,same.example,🚀 Proxies']);
+  const r=c.rules.filter(r=>r.includes(',same.example,'));assert.deepEqual(r,['DOMAIN-SUFFIX,same.example,Proxies']);
 });
 test('node chain referencing removed subscription group fails before mutation',()=>{
   const c=input();c.proxies[0]['dialer-proxy']='Old subscription group';const before=plain(c);
@@ -220,41 +220,41 @@ test('node chain referencing retained raw node is preserved',()=>{
 test('unclassified host resolving to LAN or CGNAT gets a late direct fallback',()=>{
   const r=output().rules;
   const i=r.indexOf('GEOIP,lan,DIRECT');assert(i>=0);
-  assert(i>r.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve'));
-  assert.deepEqual(r.slice(i,i+4),['GEOIP,lan,DIRECT','IP-CIDR,100.64.0.0/10,DIRECT,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final']);
+  assert(i>r.indexOf('RULE-SET,Global,Proxies,no-resolve'));
+  assert.deepEqual(r.slice(i,i+4),['GEOIP,lan,DIRECT','IP-CIDR,100.64.0.0/10,DIRECT,no-resolve','GEOIP,CN,DIRECT','MATCH,Final']);
 });
 
-for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spotify']]) {
+for (const [service, name] of [['TikTok', 'TikTok'], ['Spotify', 'Spotify']]) {
   test(service+' has an independent proxy-default group before general routing',()=>{
     const c=output();
     const g=c['proxy-groups'].find(g=>g.name===name);
     assert(g, 'missing independent group');
     assert.equal(g.type,'select');
-    assert.deepEqual(g.proxies,['🚀 Proxies','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW','🧭 Manual']);
+    assert.deepEqual(g.proxies,['Proxies','HK','JP','SG','US','TW','Manual']);
     const rule='RULE-SET,'+service+','+name+',no-resolve';
     assert(c.rules.includes(rule));
-    for(const fallback of ['GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final'])
+    for(const fallback of ['GEOSITE,cn,DIRECT','RULE-SET,Global,Proxies,no-resolve','GEOIP,CN,DIRECT','MATCH,Final'])
       assert(c.rules.indexOf(rule)<c.rules.indexOf(fallback));
-    assert(!c.rules.includes('RULE-SET,'+service+',🎬 Streaming,no-resolve'));
+    assert(!c.rules.includes('RULE-SET,'+service+',Streaming,no-resolve'));
     const provider=c['rule-providers'][service];
     assert.equal(provider.url,'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/'+service+'/'+service+'.yaml');
     assert.equal(provider.behavior,'classical');
     assert.equal(provider.interval,86400);
-    assert.equal(c['proxy-groups'].find(g=>g.name==='🚀 Proxies').proxies[0],'⚡ Auto');
+    assert.equal(c['proxy-groups'].find(g=>g.name==='Proxies').proxies[0],'Auto');
   });
   test(service+' offers every existing region, Proxies and Manual for all region combinations',()=>{
     for(let mask=1;mask<32;mask++) {
       const c=output(['香港','日本','新加坡','美国','台湾'].filter((_,i)=>mask&(1<<i)));
-      const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
+      const regions=['HK','JP','SG','US','TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['Proxies',...regions,'Manual']);
       graph(c);
     }
   });
   test(service+' still defaults to Proxies when US nodes are absent',()=>{
     for(const names of [['香港 01'],['香港 01','日本 01','新加坡 01'],['德国 01']]) {
       const c=output(names);
-      const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
+      const regions=['HK','JP','SG','TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['Proxies',...regions,'Manual']);
       graph(c);
     }
   });

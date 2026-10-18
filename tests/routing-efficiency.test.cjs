@@ -29,7 +29,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
   });
   test(script+' matches Global and Apple domains before their complete classical residuals',()=>{
     const c=output(script);
-    for(const [name,target] of [['Global','🚀 Proxies'],['Apple','🍎 Apple']]) {
+    for(const [name,target] of [['Global','Proxies'],['Apple','Apple']]) {
       const i=c.rules.indexOf('RULE-SET,'+name+'Domain,'+target+',no-resolve');
       assert(i>=0);
       assert.equal(c.rules[i+1],'RULE-SET,'+name+','+target+',no-resolve');

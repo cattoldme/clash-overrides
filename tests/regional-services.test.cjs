@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const names=['香港','日本','新加坡','美国','台湾'];
-const services=[['Mora','🇯🇵 JP'],['HuluUSA','🇺🇸 US'],['Peacock','🇺🇸 US'],['Pandora','🇺🇸 US'],['myTVSUPER','🇭🇰 HK']];
+const services=[['Mora','JP'],['HuluUSA','US'],['Peacock','US'],['Pandora','US'],['myTVSUPER','HK']];
 const sources={
   Mora:{behavior:'classical',url:'https://raw.githubusercontent.com/Hawaiine/mihomo-rules/main/ruleset/mora/mora.yaml',path:'./ruleset/hawaiine/mora.yaml'},
   myTVSUPER:{behavior:'domain',url:'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/mytvsuper.yaml',path:'./ruleset/metacubex/mytvsuper.yaml'},
@@ -48,18 +48,18 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
       assert(!Object.hasOwn(c.dns['nameserver-policy'],'+.'+domain),domain+' must not have a handwritten DNS policy');
     }
     for(const service of ['Abema','DMM','HuluJP','Niconico','TVer'])
-      assert(c.rules.includes('RULE-SET,'+service+',🇯🇵 JP,no-resolve'));
+      assert(c.rules.includes('RULE-SET,'+service+',JP,no-resolve'));
     for(const category of ['unext','radiko','nhk','dlsite'])
-      assert(c.rules.includes('GEOSITE,'+category+',🇯🇵 JP'));
+      assert(c.rules.includes('GEOSITE,'+category+',JP'));
   });
   test(script+' sends the five added regional services directly to the required country groups',()=>{
     const c=load(script)(names);
     for(const [service,target] of services) {
       const index=c.rules.indexOf('RULE-SET,'+service+','+target+',no-resolve');
       assert(index>=0,service+' missing country rule');
-      for(const fallback of ['RULE-SET,Disney,🎬 Streaming,no-resolve','RULE-SET,Google,🔎 Google,no-resolve','GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve'])
+      for(const fallback of ['RULE-SET,Disney,Streaming,no-resolve','RULE-SET,Google,Google,no-resolve','GEOSITE,cn,DIRECT','RULE-SET,Global,Proxies,no-resolve'])
         assert(index<c.rules.indexOf(fallback),service+' must precede '+fallback);
-      assert.deepEqual(c['rule-providers'][service],{type:'http',format:'yaml',...sources[service],interval:86400,proxy:'🚀 Proxies'});
+      assert.deepEqual(c['rule-providers'][service],{type:'http',format:'yaml',...sources[service],interval:86400,proxy:'Proxies'});
     }
     assert.equal(Object.keys(c['rule-providers']).length,35);
   });
@@ -69,30 +69,30 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
       const c=main(mask?names.filter((_,index)=>mask&(1<<index)):['德国']);
       const groups=new Set(c['proxy-groups'].map(group=>group.name));
       for(const [service,target] of services) {
-        const expected=groups.has(target)?target:'🚀 Proxies';
+        const expected=groups.has(target)?target:'Proxies';
         assert(c.rules.includes('RULE-SET,'+service+','+expected+',no-resolve'),service+' mask='+mask);
       }
-      const jp=groups.has('🇯🇵 JP')?'🇯🇵 JP':'🚀 Proxies';
+      const jp=groups.has('JP')?'JP':'Proxies';
       assert(c.rules.includes('DOMAIN-SUFFIX,prod.hjholdings.tv,'+jp));
       for(const service of ['Abema','DMM','HuluJP','Niconico','TVer'])
         assert(c.rules.includes('RULE-SET,'+service+','+jp+',no-resolve'));
       for(const category of ['unext','radiko','nhk','dlsite'])
         assert(c.rules.includes('GEOSITE,'+category+','+jp));
       for(const [host,target] of [
-        ['api.mora.jp','🇯🇵 JP'],['www.hulu.jp','🇯🇵 JP'],['prod.hjholdings.tv','🇯🇵 JP'],
-        ['api.prod.hjholdings.tv','🇯🇵 JP'],['www.hulu.com','🇺🇸 US'],
-        ['www.peacocktv.com','🇺🇸 US'],['www.pandora.com','🇺🇸 US'],['www.mytvsuper.com','🇭🇰 HK'],
-      ])assert.equal(route(c,host),groups.has(target)?target:'🚀 Proxies',host+' mask='+mask);
+        ['api.mora.jp','JP'],['www.hulu.jp','JP'],['prod.hjholdings.tv','JP'],
+        ['api.prod.hjholdings.tv','JP'],['www.hulu.com','US'],
+        ['www.peacocktv.com','US'],['www.pandora.com','US'],['www.mytvsuper.com','HK'],
+      ])assert.equal(route(c,host),groups.has(target)?target:'Proxies',host+' mask='+mask);
     }
   });
   test(script+' separates Hulu JP interfaces from the US list and preserves other service domains',()=>{
     const c=load(script)(names);
     assert(fixtures.HuluUSA.includes('DOMAIN-SUFFIX,prod.hjholdings.tv'),'upstream overlap must be reproduced');
-    assert(c.rules.indexOf('DOMAIN-SUFFIX,prod.hjholdings.tv,🇯🇵 JP')<c.rules.indexOf('RULE-SET,HuluUSA,🇺🇸 US,no-resolve'));
+    assert(c.rules.indexOf('DOMAIN-SUFFIX,prod.hjholdings.tv,JP')<c.rules.indexOf('RULE-SET,HuluUSA,US,no-resolve'));
     for(const [host,target] of [
-      ['api.mora.jp','🇯🇵 JP'],['www.hulu.com','🇺🇸 US'],['hulu.playback.edge.bamgrid.com','🇺🇸 US'],
-      ['www.hulu.jp','🇯🇵 JP'],['prod.hjholdings.tv','🇯🇵 JP'],['api.prod.hjholdings.tv','🇯🇵 JP'],
-      ['www.peacocktv.com','🇺🇸 US'],['www.pandora.com','🇺🇸 US'],['audio.p-cdn.us','🇺🇸 US'],['www.mytvsuper.com','🇭🇰 HK'],
+      ['api.mora.jp','JP'],['www.hulu.com','US'],['hulu.playback.edge.bamgrid.com','US'],
+      ['www.hulu.jp','JP'],['prod.hjholdings.tv','JP'],['api.prod.hjholdings.tv','JP'],
+      ['www.peacocktv.com','US'],['www.pandora.com','US'],['audio.p-cdn.us','US'],['www.mytvsuper.com','HK'],
     ])assert.equal(route(c,host),target,host);
     for(const host of ['www.sony.com','www.tvb.com','other.amazonaws.com','www.pandora.net','peacocktv.com.example.org'])
       assert.equal(route(c,host),undefined,host+' must not be captured by the added providers');

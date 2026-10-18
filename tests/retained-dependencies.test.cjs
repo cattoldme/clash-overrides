@@ -30,7 +30,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
       assert.deepEqual(c,before);
     });
     test(script+' preserves valid '+label+' exits',()=>{
-      for(const name of ['DIRECT','Japan Test','🚀 Proxies']) {
+      for(const name of ['DIRECT','Japan Test','Proxies']) {
         const keep=extra(name),out=plain(load(script)(input(keep)));
         for(const key of Object.keys(keep))assert.deepEqual(out[key],keep[key]);
       }

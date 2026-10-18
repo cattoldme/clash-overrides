@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const target='🎬 Streaming';
+const target='Streaming';
 const services=['AmazonPrimeVideo','Netflix','Disney','HBO','Crunchyroll','ParamountPlus'];
 const upstreams={
   Crunchyroll:{url:'https://raw.githubusercontent.com/liandu2024/clash/main/list/Crunchyroll.list',
@@ -35,7 +35,7 @@ function paramountRoute(config,host) {
 for(const script of ['linkcube-generic.js','flclash-single.js']) {
   test(script+' keeps the NBC shared manifest host on Proxies while Paramount-only hosts use Streaming',()=>{
     const c=output(script);
-    assert.equal(paramountRoute(c,'link.theplatform.com'),'🚀 Proxies');
+    assert.equal(paramountRoute(c,'link.theplatform.com'),'Proxies');
     for(const host of ['www.paramountplus.com','video.cbsaavideo.com','assets.pplusstatic.com','cbsi.live.ott.irdeto.com'])
       assert.equal(paramountRoute(c,host),target,host);
     assert.equal(paramountRoute(c,'example.theplatform.com'),undefined);
@@ -50,7 +50,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
       services.map(service=>'RULE-SET,'+service+','+target+',no-resolve'));
     for(const service of services) {
       const index=c.rules.indexOf('RULE-SET,'+service+','+target+',no-resolve');
-      for(const fallback of ['RULE-SET,Google,🔎 Google,no-resolve','GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve','GEOIP,CN,DIRECT'])
+      for(const fallback of ['RULE-SET,Google,Google,no-resolve','GEOSITE,cn,DIRECT','RULE-SET,Global,Proxies,no-resolve','GEOIP,CN,DIRECT'])
         assert(index<c.rules.indexOf(fallback),service+' must precede '+fallback);
       assert(c['rule-providers'][service],service+' needs a provider');
     }
@@ -59,7 +59,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     const c=output(script);
     for(const [service,expected] of Object.entries(upstreams))
       assert.deepEqual(c['rule-providers'][service],{type:'http',behavior:'classical',
-        ...expected,interval:86400,proxy:'🚀 Proxies'});
+        ...expected,interval:86400,proxy:'Proxies'});
     assert.equal(Object.keys(c['rule-providers']).length,35);
   });
   test(script+' keeps custom exceptions ahead of the added streaming providers',()=>{

@@ -20,30 +20,30 @@ const BT_PROCESSES = [
 const TEST_URL = "https://cp.cloudflare.com/generate_204";
 const DESKTOP_PROFILE = { autoInterval: 300, ruleInterval: 86400, gameInterval: 43200 };
 const GROUP = {
-  Proxies: "🚀 Proxies",
-  AI: "🤖 AI",
-  Streaming: "🎬 Streaming",
-  TikTok: "🎵 TikTok",
-  Spotify: "🎧 Spotify",
-  YouTube: "📺 YouTube",
-  Telegram: "✈️ Telegram",
-  Google: "🔎 Google",
-  GitHub: "🐙 GitHub",
-  Steam: "🎮 Steam",
-  Bilibili: "📺 Bilibili",
-  Bahamut: "🎞️ Bahamut",
-  Microsoft: "🪟 Microsoft",
-  Apple: "🍎 Apple",
-  PayPal: "💳 PayPal",
-  Final: "🔚 Final",
-  Auto: "⚡ Auto",
-  Fallback: "🔁 Fallback",
-  Manual: "🧭 Manual",
-  HK: "🇭🇰 HK",
-  JP: "🇯🇵 JP",
-  SG: "🇸🇬 SG",
-  TW: "🇹🇼 TW",
-  US: "🇺🇸 US",
+  Proxies: "Proxies",
+  AI: "AI",
+  Streaming: "Streaming",
+  TikTok: "TikTok",
+  Spotify: "Spotify",
+  YouTube: "YouTube",
+  Telegram: "Telegram",
+  Google: "Google",
+  GitHub: "GitHub",
+  Steam: "Steam",
+  Bilibili: "Bilibili",
+  Bahamut: "Bahamut",
+  Microsoft: "Microsoft",
+  Apple: "Apple",
+  PayPal: "PayPal",
+  Final: "Final",
+  Auto: "Auto",
+  Fallback: "Fallback",
+  Manual: "Manual",
+  HK: "HK",
+  JP: "JP",
+  SG: "SG",
+  TW: "TW",
+  US: "US",
 };
 const COUNTRIES = [
   ["HK", /香港|🇭🇰|(?:^|[^a-z])(?:hkg?|hong[\s-]*kong)(?=$|[^a-z])/i],
@@ -163,7 +163,8 @@ function classify(nodes, pattern) {
 }
 
 function group(name, type, proxies, interval, tolerance, testUrl) {
-  const data = { name, type, proxies };
+  const data = { name, type, proxies,
+    icon: `https://raw.githubusercontent.com/cattoldme/clash-overrides/main/icons/${name}.png` };
   if (type === "url-test" || type === "fallback") {
     data.url = testUrl || TEST_URL;
     data.interval = interval == null ? 600 : interval;
