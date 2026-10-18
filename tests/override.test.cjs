@@ -222,3 +222,30 @@ test('unclassified host resolving to LAN or CGNAT gets a late direct fallback',(
   assert(i>r.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve'));
   assert.deepEqual(r.slice(i,i+4),['GEOIP,lan,DIRECT','IP-CIDR,100.64.0.0/10,DIRECT,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final']);
 });
+
+for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spotify']]) {
+  test(service+' has an independent US-default group before general routing',()=>{
+    const c=output();
+    const g=c['proxy-groups'].find(g=>g.name===name);
+    assert(g, 'missing independent group');
+    assert.equal(g.type,'select');
+    assert.deepEqual(g.proxies,['🇺🇸 US','🧭 Manual']);
+    const rule='RULE-SET,'+service+','+name+',no-resolve';
+    assert(c.rules.includes(rule));
+    for(const fallback of ['GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final'])
+      assert(c.rules.indexOf(rule)<c.rules.indexOf(fallback));
+    assert(!c.rules.includes('RULE-SET,'+service+',🎬 Streaming,no-resolve'));
+    const provider=c['rule-providers'][service];
+    assert.equal(provider.url,'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/'+service+'/'+service+'.yaml');
+    assert.equal(provider.behavior,'classical');
+    assert.equal(provider.interval,86400);
+    assert.equal(c['proxy-groups'].find(g=>g.name==='🚀 Proxies').proxies[0],'⚡ Auto');
+  });
+  test(service+' does not fall back to Hong Kong when US nodes are absent',()=>{
+    for(const names of [['香港 01'],['香港 01','日本 01','新加坡 01'],['德国 01']]) {
+      const c=output(names);
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['REJECT','🧭 Manual']);
+      graph(c);
+    }
+  });
+}
