@@ -1,0 +1,5 @@
+# Source: https://raw.githubusercontent.com/liandu2024/clash/000dde8ef0f4aef2254403f67589e5092c0c1e66/list/Crunchyroll.list
+# Scope snapshot: 2026-10-18; runtime provider continues updating upstream.
+DOMAIN-SUFFIX,crunchyroll.com
+DOMAIN-SUFFIX,crunchyrollcdn.com
+DOMAIN-SUFFIX,crunchyrollsvc.com

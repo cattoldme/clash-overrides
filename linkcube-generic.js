@@ -8,11 +8,7 @@ const LOCAL_DNS = [
   "https://doh.pub/dns-query#DIRECT",
 ];
 const REMOTE_DNS = ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"];
-const AI_DOMAINS = [
-  "claude.ai", "anthropic.com", "gemini.google.com",
-  "generativelanguage.googleapis.com", "copilot.microsoft.com", "sydney.bing.com",
-  "openaimerge.com",
-];
+const AI_GEOSITES = ["openai", "google-gemini", "anthropic", "xai"];
 const LAN_DOMAINS = ["localhost", "lan", "local", "home.arpa"];
 const BT_PROCESSES = [
   "qbittorrent", "qbittorrent.exe", "Transmission", "Transmission.exe",
@@ -59,11 +55,15 @@ const BLACKMATRIX7_RULESETS = [
   "Abema",
   "DMM",
   "HuluJP",
+  "HuluUSA",
+  "Peacock",
+  "Pandora",
   "Niconico",
   "TVer",
   "YouTube",
   "Disney",
   "HBO",
+  "ParamountPlus",
   "TikTok",
   "Spotify",
   "Telegram",
@@ -85,30 +85,6 @@ const JAPAN_RULESETS = [
   "TVer",
 ];
 const JAPAN_GEOSITES = ["unext", "radiko", "nhk", "dlsite"];
-const JAPAN_SITE_DOMAINS = [
-  // 日本国内向け動画、电视、广播服务；未被 Geosite 类别完整覆盖的保留。
-  "lemino.docomo.ne.jp",
-  "fod.fujitv.co.jp",
-  "telasa.jp",
-  "wowow.co.jp",
-  "animestore.docomo.ne.jp",
-
-  // 日本成人内容与数字商店；无对应维护类别的保留。
-  "fanza.com",
-  "dmmgames.com",
-  "duga.jp",
-  "mgstage.com",
-  "sod.co.jp",
-  "sodprime.com",
-  "prestige-av.com",
-  "s1s1s1.com",
-  "moodyz.com",
-  "ideapocket.com",
-  "madonna-av.com",
-  "getchu.com",
-  "gyutto.com",
-  "digiket.com",
-];
 
 function buildRuleProviders() {
   const providers = {};
@@ -127,7 +103,7 @@ function buildRuleProviders() {
     };
   }
   // 域名名单避免将共享 AWS 区域、CDN 整个后缀归入流媒体。
-  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"]]) {
+  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"], ["myTVSUPER", "mytvsuper"]]) {
     providers[name] = {
       type: "http", behavior: "domain", format: "yaml",
       url: `https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/${category}.yaml`,
@@ -135,6 +111,18 @@ function buildRuleProviders() {
       interval: 86400, proxy: GROUP.Proxies,
     };
   }
+  providers.Crunchyroll = {
+    type: "http", behavior: "classical", format: "text",
+    url: "https://raw.githubusercontent.com/liandu2024/clash/main/list/Crunchyroll.list",
+    path: "./ruleset/liandu2024/Crunchyroll.list",
+    interval: 86400, proxy: GROUP.Proxies,
+  };
+  providers.Mora = {
+    type: "http", behavior: "classical", format: "yaml",
+    url: "https://raw.githubusercontent.com/Hawaiine/mihomo-rules/main/ruleset/mora/mora.yaml",
+    path: "./ruleset/hawaiine/mora.yaml",
+    interval: 86400, proxy: GROUP.Proxies,
+  };
   // Sukka maintains a dedicated game-content CDN list, including Steam depots.
   providers.GameDownload = {
     type: "http",
@@ -208,7 +196,7 @@ function ruleSet(name, target) {
   return `RULE-SET,${name},${target},no-resolve`;
 }
 
-function buildRules(japanTarget) {
+function buildRules(japanTarget, regionTargets) {
   const localIPs = [
     "127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
     "100.64.0.0/10", "169.254.0.0/16", "224.0.0.0/4", "255.255.255.255/32",
@@ -218,9 +206,16 @@ function buildRules(japanTarget) {
     LAN_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},DIRECT`),
     ["GEOSITE,private,DIRECT"],
     customRules(),
+    // HuluUSA 上游也含日版接口，先固定到日本，防止误送美国。
+    [`DOMAIN-SUFFIX,prod.hjholdings.tv,${regionTargets.JP || "REJECT"}`],
     JAPAN_RULESETS.map((name) => ruleSet(name, japanTarget)),
     JAPAN_GEOSITES.map((name) => `GEOSITE,${name},${japanTarget}`),
-    JAPAN_SITE_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${japanTarget}`)
+    // 新增地区限定服务缺少对应节点时拒绝，不回退到其他地区。
+    [ruleSet("Mora", regionTargets.JP || "REJECT"),
+      ruleSet("HuluUSA", regionTargets.US || "REJECT"),
+      ruleSet("Peacock", regionTargets.US || "REJECT"),
+      ruleSet("Pandora", regionTargets.US || "REJECT"),
+      ruleSet("myTVSUPER", regionTargets.HK || "REJECT")]
   );
   return rules.concat([
     // Steam Web 中有 steamusercontent 的精确例外，应先于 SteamCN 的大后缀。
@@ -231,9 +226,8 @@ function buildRules(japanTarget) {
     `DOMAIN-SUFFIX,steam-chat.com,${GROUP.Steam}`,
     ruleSet("SteamCN", "DIRECT"),
     ruleSet("GameDownload", "DIRECT"),
-    // OpenAI 使用完整 MetaCubeX geosite；不再把整个云厂商 ASN/共享域名归入 AI。
-    `GEOSITE,openai,${GROUP.AI}`,
-  ], AI_DOMAINS.map((domain) => `DOMAIN-SUFFIX,${domain},${GROUP.AI}`), [
+    // AI 仅使用四个平台的完整 MetaCubeX geosite 分类。
+  ], AI_GEOSITES.map((name) => `GEOSITE,${name},${GROUP.AI}`), [
     // 地区国内服务/游戏 CDN 优先，不跟随整个平台的代理选择。
     "GEOSITE,microsoft@cn,DIRECT",
     "GEOSITE,apple-cn,DIRECT",
@@ -243,6 +237,10 @@ function buildRules(japanTarget) {
     ruleSet("Netflix", GROUP.Streaming),
     ruleSet("Disney", GROUP.Streaming),
     ruleSet("HBO", GROUP.Streaming),
+    ruleSet("Crunchyroll", GROUP.Streaming),
+    // NBC 等也使用此播放接口，保留总代理出口，避免跟随 Streaming 切换地区。
+    `DOMAIN,link.theplatform.com,${GROUP.Proxies}`,
+    ruleSet("ParamountPlus", GROUP.Streaming),
     ruleSet("TikTok", GROUP.TikTok),
     ruleSet("Spotify", GROUP.Spotify),
     ruleSet("Telegram", GROUP.Telegram),
@@ -280,14 +278,13 @@ function configureDns(config) {
     if (!/^(geosite|rule-set):/i.test(key)) policy[key] = previous[key];
   }
   for (const domain of LAN_DOMAINS) policy[`+.${domain}`] = ["system"];
-  for (const domain of AI_DOMAINS) policy[`+.${domain}`] = remote;
   for (const domain of domainList(CUSTOM_DIRECT_DOMAINS)) policy[`+.${domain}`] = local;
   for (const domain of domainList(CUSTOM_PROXY_DOMAINS)) policy[`+.${domain}`] = remote;
   // Mihomo 按策略段首次命中；具体域名与自定义例外必须排在分类之前。
   policy["geosite:private"] = ["system"];
+  for (const name of AI_GEOSITES) policy[`geosite:${name}`] = remote;
   policy["geosite:cn"] = local;
   policy["geosite:gfw"] = remote;
-  policy["geosite:openai"] = remote;
   policy["rule-set:SteamCN,GameDownload"] = local;
   Object.assign(dns, {
     "respect-rules": false,
@@ -416,28 +413,16 @@ function main(config) {
   if (!autoNodes.length) autoNodes = nodes;
   autoNodes = Array.from(new Set(autoNodes));
 
-  // AI 优先新加坡、美国、日本，并允许手选；无匹配地区时默认拒绝。
-  const aiChoices = [];
-  if (Object.prototype.hasOwnProperty.call(byCountryGroups, "SG")) aiChoices.push(byCountryGroups.SG);
-  for (const code of ["US", "JP"]) {
-    if (Object.prototype.hasOwnProperty.call(byCountryGroups, code)) {
-      aiChoices.push(byCountryGroups[code]);
-    }
-  }
-  if (!aiChoices.length) aiChoices.push("REJECT");
-  aiChoices.push(GROUP.Manual);
-  const aiGroup = group(GROUP.AI, "select", aiChoices);
-
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
-  const usDefaultChoices = [byCountryGroups.US || "REJECT"]
-    .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Manual]);
+  // 应用选择顺序统一为总代理、已有地区、手选；默认跟随总代理。
+  const serviceChoices = [GROUP.Proxies].concat(countryChoices, [GROUP.Manual]);
   const proxyChoices = [GROUP.Auto, GROUP.Fallback].concat(countryChoices, [GROUP.Manual, "DIRECT"]);
   const groups = [
     group(GROUP.Proxies, "select", proxyChoices),
-    aiGroup,
-    group(GROUP.TikTok, "select", usDefaultChoices.slice()),
-    group(GROUP.Spotify, "select", usDefaultChoices.slice()),
-    group(GROUP.Streaming, "select", existing(byCountryGroups, ["SG", "US", "HK", "JP", "TW"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
+    group(GROUP.AI, "select", serviceChoices.slice()),
+    group(GROUP.TikTok, "select", serviceChoices.slice()),
+    group(GROUP.Spotify, "select", serviceChoices.slice()),
+    group(GROUP.Streaming, "select", serviceChoices.slice()),
     group(GROUP.YouTube, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Telegram, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Google, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
@@ -463,7 +448,7 @@ function main(config) {
   config["proxy-groups"] = groups;
   config["rule-providers"] = providers;
   // 缺少日本节点时改走总代理，避免引用不存在的地区组。
-  config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies);
+  config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies, byCountryGroups);
   if (config.dns) config.dns = dnsConfig.dns;
   return config;
 }

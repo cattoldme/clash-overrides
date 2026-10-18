@@ -1,0 +1,14 @@
+# Source: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/7dd06b44f5093dd5404e1e5f3bca5452d97146ef/rule/Clash/HuluJP/HuluJP.yaml
+# Scope snapshot: 2026-10-18; runtime provider continues updating upstream.
+# NAME: HuluJP
+# AUTHOR: blackmatrix7
+# REPO: https://github.com/blackmatrix7/ios_rule_script
+# UPDATED: 2025-06-06 09:17:41
+# DOMAIN-SUFFIX: 5
+# TOTAL: 5
+payload:
+  - DOMAIN-SUFFIX,happyon.jp
+  - DOMAIN-SUFFIX,hjholdings.jp
+  - DOMAIN-SUFFIX,hulu.jp
+  - DOMAIN-SUFFIX,streaks.jp
+  - DOMAIN-SUFFIX,yb.uncn.jp

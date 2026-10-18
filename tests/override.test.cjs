@@ -85,15 +85,15 @@ test('OpenAI uses maintained domain categories, not shared ASN rules',()=>{
   const r=output().rules;assert(r.includes('GEOSITE,openai,🤖 AI'));
   assert(!r.some(x=>x.startsWith('IP-ASN,')||x.includes('DOMAIN-KEYWORD,openai')));
 });
-test('narrow AI exceptions precede Microsoft and Google',()=>{
+test('four AI categories precede Microsoft and Google',()=>{
   const r=output().rules;
-  for(const domain of ['claude.ai','anthropic.com','gemini.google.com','copilot.microsoft.com','sydney.bing.com']) {
-    const i=r.indexOf('DOMAIN-SUFFIX,'+domain+',🤖 AI');
+  for(const category of ['openai','google-gemini','anthropic','xai']) {
+    const i=r.indexOf('GEOSITE,'+category+',🤖 AI');
     assert(i>=0 && i<r.indexOf('RULE-SET,Microsoft,🪟 Microsoft,no-resolve'));
     assert(i<r.indexOf('RULE-SET,Google,🔎 Google,no-resolve'));
   }
-  assert(!r.includes('DOMAIN-SUFFIX,stripe.com,🤖 AI'));
 });
+
 test('Steam CDN stays direct; store rules beat broad Steam matching',()=>{
   const r=output().rules;
   const store=r.indexOf('RULE-SET,SteamWeb,🎮 Steam,no-resolve');
@@ -224,12 +224,12 @@ test('unclassified host resolving to LAN or CGNAT gets a late direct fallback',(
 });
 
 for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spotify']]) {
-  test(service+' has an independent US-default group before general routing',()=>{
+  test(service+' has an independent proxy-default group before general routing',()=>{
     const c=output();
     const g=c['proxy-groups'].find(g=>g.name===name);
     assert(g, 'missing independent group');
     assert.equal(g.type,'select');
-    assert.deepEqual(g.proxies,['🇺🇸 US','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW','🧭 Manual']);
+    assert.deepEqual(g.proxies,['🚀 Proxies','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW','🧭 Manual']);
     const rule='RULE-SET,'+service+','+name+',no-resolve';
     assert(c.rules.includes(rule));
     for(const fallback of ['GEOSITE,cn,DIRECT','RULE-SET,Global,🚀 Proxies,no-resolve','GEOIP,CN,DIRECT','MATCH,🔚 Final'])
@@ -241,20 +241,19 @@ for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spot
     assert.equal(provider.interval,86400);
     assert.equal(c['proxy-groups'].find(g=>g.name==='🚀 Proxies').proxies[0],'⚡ Auto');
   });
-  test(service+' offers every existing region and Manual for all region combinations',()=>{
+  test(service+' offers every existing region, Proxies and Manual for all region combinations',()=>{
     for(let mask=1;mask<32;mask++) {
       const c=output(['香港','日本','新加坡','美国','台湾'].filter((_,i)=>mask&(1<<i)));
-      const regions=['🇺🇸 US','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      const expected=regions[0]==='🇺🇸 US'?regions:['REJECT',...regions];
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,[...expected,'🧭 Manual']);
+      const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
       graph(c);
     }
   });
-  test(service+' does not fall back to Hong Kong when US nodes are absent',()=>{
+  test(service+' still defaults to Proxies when US nodes are absent',()=>{
     for(const names of [['香港 01'],['香港 01','日本 01','新加坡 01'],['德国 01']]) {
       const c=output(names);
       const regions=['🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇹🇼 TW'].filter(region=>c['proxy-groups'].some(g=>g.name===region));
-      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['REJECT',...regions,'🧭 Manual']);
+      assert.deepEqual(c['proxy-groups'].find(g=>g.name===name).proxies,['🚀 Proxies',...regions,'🧭 Manual']);
       graph(c);
     }
   });
