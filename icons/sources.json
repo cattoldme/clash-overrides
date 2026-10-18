@@ -1,16 +1,16 @@
 {
-  "style": "C: brand colors, light outline functions, color flags",
-  "processing": "Transparent margins trimmed, aspect ratio preserved, centered on a 128x128 PNG canvas. Lucide stroke #e4e5ec.",
+  "style": "A: color logos, color function icons, color flags",
+  "processing": "Transparent margins trimmed, aspect ratio preserved, centered on a 128x128 PNG canvas.",
   "icons": {
     "Proxies": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/network.svg",
-      "source_sha256": "bf34d01a0c245d1b4e1990dda36a0096d472f0fe7bc51c6ba7178af720bdc87a",
-      "sha256": "554e2e3c50740921074649a15ebf87b6f2367225624243bfcc3ac01baa84044c"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Proxy.png",
+      "source_sha256": "56f5e40b72a4279c12e3577f996a2fa003c9adafc86a66ed9a38c1ec60aa6bc4",
+      "sha256": "bb899f5a54fb25c645a574899b77b954b2d694a8b4b719797c7a2fdb9cba6f81"
     },
     "AI": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sparkles.svg",
-      "source_sha256": "2bc2eb1e3c09dd04b79d814ce94fec1834282a55668a086c980eabd25ad3ace3",
-      "sha256": "9ee3a3ae6552854c678809f220a3f8b81881f523243144d6ecca937a6617c8c4"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/AI.png",
+      "source_sha256": "dea91e9e528c7f32e7bb7c4d390be6a0b8b65a89ff9d6d5e764e2c318201f98f",
+      "sha256": "ce97220d1e90463fd9a6c971ca84006860d3b056ded33a02d282c87fcc3e314a"
     },
     "TikTok": {
       "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/TikTok.png",
@@ -23,9 +23,9 @@
       "sha256": "975c930ee7e9c01ef80e1e17e89f6e1c61c072b7bb9e5b8478561e2b55795520"
     },
     "Streaming": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/clapperboard.svg",
-      "source_sha256": "a4da77d84eb1172f3dccd36b9da8cffc6ffee02e3fbe93ae45d1059a37893b35",
-      "sha256": "9874103640f979a8cc9ca195f096b52d95c7548e59ed0fd83296ea8b9ea5d5bf"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Streaming.png",
+      "source_sha256": "3261a724cb6b8662ec170ea360f3739cacd1f09125cb54f764517b81f87c1d9e",
+      "sha256": "8c19a2fb905e2ab8d61b18d3152791d7711f6c7d3345466ea51990550a5adecc"
     },
     "YouTube": {
       "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/YouTube.png",
@@ -78,24 +78,24 @@
       "sha256": "fc41a5905877cf13c68b977e44bd09c9702050784771e8009d40782a482594b6"
     },
     "Final": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/route.svg",
-      "source_sha256": "64fc8472b0e71981e79ed296962d87eea80047efc39ceda17fe69e41cf3b8811",
-      "sha256": "37d105a655f3eecdc29bc0693d191abb5babb833fcc0cb1d79acdb9d4450401f"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Final.png",
+      "source_sha256": "2f5e1d63526c34b4a26194bf07c554d35b98b25bbfaa988611d6ecb77e3f511f",
+      "sha256": "77e7fa63fb41e114dd84e92d5c75186039b8d5e6c211aacbbcba729131c6bec3"
     },
     "Auto": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/zap.svg",
-      "source_sha256": "5097e790bba163d1a6cb364276053b216fa7b75e3a0739f4db68473a2b54a922",
-      "sha256": "799bad9e3da15eea7d45f3ef24f9590fb7964dad70bd0b2bd9b71df5aa87f887"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png",
+      "source_sha256": "ca2161622dcc61e6e72f1906c0970ab604d19d7da513cc7fc243561b9543f171",
+      "sha256": "1427b7d2598019848d68c668e8e4d2c4022fa2ff5975b9b2e0ce11a6bf7aaf45"
     },
     "Fallback": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/arrow-left-right.svg",
-      "source_sha256": "c9f6f0d09b52073cbd5fc6dc32b092561e72f2849f0bceef8dfa219ac9d965e3",
-      "sha256": "af76dd4af987e208dd57d4585195de04e45ed524095a544c77a6ecb5b20b0145"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png",
+      "source_sha256": "eeec3365634556da40917790b9338bcb4756b3cbcb73c770a253f602af98b686",
+      "sha256": "cce9f23bbc17cf8b80d68485bec5a1404cdc32a5ec7ebca3a7565c9dc733d147"
     },
     "Manual": {
-      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sliders-horizontal.svg",
-      "source_sha256": "b016af850e92e270ecbdc111aaf48c7b49f7ee50e084617b4888eba526ea86d1",
-      "sha256": "fb8d7f1ece98471647e63cc17231357e7b2cd2385833ab0781590bea4d7eea9a"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static.png",
+      "source_sha256": "e1321ecbe329213d3c647fb9ba70aa9a6b21f7aeeff7f97d4280f789dc9afc99",
+      "sha256": "f73ef04f398067085068885d91065f14c0c7794cd5e08e1f91925dd49a086895"
     },
     "HK": {
       "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Hong_Kong.png",
@@ -113,9 +113,9 @@
       "sha256": "19cd41b7df9027b7155c50b2ea2a445df68eab0643f2772125df5916ccc7163a"
     },
     "TW": {
-      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Taiwan.png",
-      "source_sha256": "c40a38fdba600cffe8471ada64b294744211f233a650140650c67bd26b4b0e37",
-      "sha256": "b00fa97e61ea3adb4127daec5967299aa55eca1030c1123a0bd5669b8aaff413"
+      "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/China.png",
+      "source_sha256": "105954406317babeefb5f3a7b5857ac4c797c1c4423a365eb6d2e8caa52d50c1",
+      "sha256": "7d0059a8e3c7409dcc983c8e8b0899e3dc02904e05e68b594932a176a250c2e6"
     },
     "US": {
       "source": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/United_States.png",

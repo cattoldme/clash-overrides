@@ -164,7 +164,7 @@ function classify(nodes, pattern) {
 
 function group(name, type, proxies, interval, tolerance, testUrl) {
   const data = { name, type, proxies,
-    icon: `https://raw.githubusercontent.com/cattoldme/clash-overrides/main/icons/${name}.png` };
+    icon: `https://raw.githubusercontent.com/cattoldme/clash-overrides/main/icons/${name}.png?v=a1` };
   if (type === "url-test" || type === "fallback") {
     data.url = testUrl || TEST_URL;
     data.interval = interval == null ? 600 : interval;
@@ -474,10 +474,84 @@ function retainDnsDependencies(config, dns, groups, providers, extraNeeded = [])
   }
 }
 
+// 节点名称是引用标识；只改名称和出口引用，不改密码、服务器或规则内容。
+function normalizeTaiwanFlags(config) {
+  const names = new Map();
+  const taiwanPattern = COUNTRIES.find(([code]) => code === "TW")[1];
+  for (const node of config.proxies) {
+    if (!node || !isRealNode(node.name) || !node.name.includes("🇹🇼")) continue;
+    let name = node.name.replace(/🇹🇼/g, "🇨🇳");
+    // 旗帜是唯一地区信息时保留 TW 标签，保证再次应用仍分入台湾。
+    if (!taiwanPattern.test(name)) name = name.replace("🇨🇳", "🇨🇳 TW");
+    names.set(node.name, name);
+  }
+  if (!names.size) return config;
+  const copied = JSON.parse(JSON.stringify(config));
+  const rename = name => names.get(name) || name;
+  const token = value => names.has(value.trim()) ? value.replace(value.trim(), names.get(value.trim())) : value;
+  for (const node of copied.proxies) {
+    if (!node) continue;
+    node.name = rename(node.name);
+    if (node["dialer-proxy"]) node["dialer-proxy"] = rename(node["dialer-proxy"]);
+  }
+  for (const group of copied["proxy-groups"] || []) {
+    if (Array.isArray(group.proxies)) group.proxies = group.proxies.map(rename);
+  }
+  for (const entry of (copied.listeners || []).concat(Object.values(copied["rule-providers"] || {}))) {
+    if (entry.proxy) entry.proxy = rename(entry.proxy);
+  }
+  if (copied.ntp && copied.ntp["dialer-proxy"]) copied.ntp["dialer-proxy"] = rename(copied.ntp["dialer-proxy"]);
+  if (copied.tunnels) copied.tunnels = copied.tunnels.map(tunnel => {
+    if (typeof tunnel !== "string") {
+      if (tunnel.proxy) tunnel.proxy = rename(tunnel.proxy);
+      return tunnel;
+    }
+    const parts = tunnel.split(",");
+    if (parts[3]) parts[3] = token(parts[3]);
+    return parts.join(",");
+  });
+  for (const key of Object.keys(copied["sub-rules"] || {})) {
+    copied["sub-rules"][key] = copied["sub-rules"][key].map(rule => {
+      const parts = rule.split(","), type = parts[0].trim().toUpperCase();
+      if (type === "SUB-RULE") return rule;
+      const complex = ["AND", "OR", "NOT", "DOMAIN-REGEX", "PROCESS-NAME-REGEX", "PROCESS-PATH-REGEX"].includes(type);
+      const index = type === "MATCH" ? 1 : complex ? parts.length - 1 : 2;
+      if (parts[index]) parts[index] = token(parts[index]);
+      return parts.join(",");
+    });
+  }
+  function fragment(part) {
+    if (names.has(part)) return names.get(part);
+    let decoded;
+    try { decoded = decodeURIComponent(part); } catch (_) { return part; }
+    return names.has(decoded) ? encodeURIComponent(names.get(decoded)) : part;
+  }
+  function servers(value) {
+    if (Array.isArray(value)) return value.map(servers);
+    if (typeof value !== "string" || !value.includes("#")) return value;
+    const index = value.indexOf("#");
+    return value.slice(0, index + 1) + value.slice(index + 1).split("&")
+      .map(fragment).join("&");
+  }
+  const dns = copied.dns && typeof copied.dns === "object" && !Array.isArray(copied.dns) ? copied.dns : {};
+  for (const key of ["nameserver", "fallback", "default-nameserver", "proxy-server-nameserver", "direct-nameserver"]) {
+    if (key in dns) dns[key] = servers(dns[key]);
+  }
+  for (const key of ["nameserver-policy", "proxy-server-nameserver-policy"]) {
+    for (const domain of Object.keys(dns[key] || {})) dns[key][domain] = servers(dns[key][domain]);
+  }
+  return copied;
+}
+
 function transform(config, profile = DESKTOP_PROFILE) {
   // 空输入、provider-only 和混合订阅不重建，避免丢掉 provider 中的节点。
   if (!config || typeof config !== "object" || !Array.isArray(config.proxies)) return config;
   if (config["proxy-providers"] && Object.keys(config["proxy-providers"]).length) return config;
+  const renamed = normalizeTaiwanFlags(config);
+  if (renamed !== config) {
+    const result = transform(renamed, profile);
+    return Object.assign(config, result);
+  }
   const allNames = new Set();
   const reserved = new Set(Object.keys(GROUP).map((key) => GROUP[key]).concat(["DIRECT", "REJECT"]));
   for (const proxy of config.proxies) {

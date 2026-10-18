@@ -19,11 +19,11 @@ function run(script, regions = ['香港','日本','新加坡','美国','台湾']
 }
 
 for (const script of ['linkcube-generic.js','flclash-single.js','flclash-mobile.js']) {
-  test(script + ' uses all 24 plain group names and approved C icons', () => {
+  test(script + ' uses all 24 plain group names and approved A icons', () => {
     const out = run(script);
     assert.deepEqual(out['proxy-groups'].map(group => group.name), names);
     for (const group of out['proxy-groups']) {
-      assert.equal(group.icon, iconBase + group.name + '.png');
+      assert.equal(group.icon, iconBase + group.name + '.png?v=a1');
       assert(fs.existsSync(path.join(root, 'icons', group.name + '.png')), group.name);
     }
     const targets = new Set(names.concat(['DIRECT','REJECT'], out.proxies.map(node => node.name)));
@@ -43,8 +43,9 @@ for (const script of ['linkcube-generic.js','flclash-single.js','flclash-mobile.
   });
 }
 
-test('published icon assets match their attributed C selection and remain small PNGs', () => {
+test('published icon assets match their attributed A selection and remain small PNGs', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'icons', 'sources.json'), 'utf8'));
+  assert.equal(manifest.style, 'A: color logos, color function icons, color flags');
   assert.deepEqual(Object.keys(manifest.icons).sort(), names.slice().sort());
   let total = 0;
   for (const name of names) {
@@ -53,7 +54,8 @@ test('published icon assets match their attributed C selection and remain small 
     assert.equal(bytes.readUInt32BE(16), 128, name);
     assert.equal(bytes.readUInt32BE(20), 128, name);
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), manifest.icons[name].sha256);
-    assert.match(manifest.icons[name].source, /^https:\/\/raw\.githubusercontent\.com\/(Koolson\/Qure|lucide-icons\/lucide)\//);
+    assert.match(manifest.icons[name].source, /^https:\/\/raw\.githubusercontent\.com\/Koolson\/Qure\/master\/IconSet\/Color\//);
+    if (name === 'TW') assert(manifest.icons[name].source.endsWith('/China.png'));
     total += bytes.length;
   }
   assert(total < 300000, 'keep the complete icon set lightweight');

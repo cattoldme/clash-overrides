@@ -18,11 +18,11 @@ https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-single.
 https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-mobile.js
 ```
 
-两版使用同一套 C 风格图标：服务保留品牌色，AI、Streaming、Proxies 等功能组使用浅色线条，五个地区使用旗帜图片。分组名称已去掉 emoji，节点原名中的旗帜不变。图标针对深色界面设计；FlClash 的图标样式应选择显示图标，不能设为隐藏。
+两版使用同一套 A 风格彩色图标：服务保留品牌色，AI、Streaming、Proxies 等功能组也使用彩色符号，地区使用旗帜图片。TW 分组使用中国国旗；台湾节点名称中的 🇹🇼 同步替换为 🇨🇳，链式节点及保留配置中的出口引用一起更新，密码等连接信息不变。若旗帜是节点唯一的台湾地区标识，会补上 TW 文字，保证再次应用仍分入台湾组。分组名称保持纯文字；FlClash 的图标样式应选择显示图标，不能设为隐藏。
 
 **更新后请检查分组选择：** 名称是客户端保存选择的标识，去掉 emoji 后，原先选定的地区可能回到默认值，需要重新选择。分组选项、初始默认值与分流规则保持原样。订阅中的节点也不能与 `Proxies`、`AI`、`HK` 等内置分组同名。
 
-图标从本仓库的 `icons/` 下载，FlClash 会缓存图片；首次加载需要能访问 GitHub 原始文件，图片不可用时客户端可能显示首字母，分流仍正常工作。素材来源和许可见 [图标说明](icons/README.md)。
+图标从本仓库的 `icons/` 下载，FlClash 会缓存图片；A 版图标 URL 带版本参数，更新脚本后会重新获取图片，避免继续显示缓存的 C 版。首次加载需要能访问 GitHub 原始文件，图片不可用时客户端可能显示首字母，分流仍正常工作。素材来源和许可见 [图标说明](icons/README.md)。
 
 两版均包含通用 JS 和基础 YAML，只选一个导入，不需要再导入 YAML，也不要同时叠加原通用 JS。也可下载对应 JS，通过本地文件或脚本编辑器导入并绑定。
 
