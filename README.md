@@ -57,7 +57,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 ## 分流方式
 
 - 内网、国内域名及最终判断为中国 IP 的未分类目标直连。
-- AI 仅使用 MetaCubeX 的四个分类：ChatGPT / OpenAI（openai）、Gemini（google-gemini）、Claude / Anthropic（anthropic）、Grok / xAI（xai）。不再附加手写 AI 域名；其他服务按原有平台和兜底规则分流。Gemini 分类还包含 AI Studio、NotebookLM 等相关 Google AI 服务；实际范围随完整 geosite 数据更新。AI 组默认选择及选项不变：优先新加坡，其次美国、日本，再提供共享 Manual；没有这些地区时默认 REJECT。
+- AI 仅使用 MetaCubeX 的四个分类：ChatGPT / OpenAI（openai）、Gemini（google-gemini）、Claude / Anthropic（anthropic）、Grok / xAI（xai）。不再附加手写 AI 域名；其他服务按原有平台和兜底规则分流。Gemini 分类还包含 AI Studio、NotebookLM 等相关 Google AI 服务；实际范围随完整 geosite 数据更新。AI 组默认选择美国，提供港、日、新、台、美五个已有地区组、Proxies 总代理及共享 Manual；没有美国节点时默认 REJECT，仍可手动切换其他选项。客户端保留旧选择时需手动切到 US。
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。

@@ -27,14 +27,14 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     for(const domain of ['claude.ai','anthropic.com','gemini.google.com','generativelanguage.googleapis.com','copilot.microsoft.com','sydney.bing.com','openaimerge.com'])
       assert(!Object.hasOwn(policy,'+.'+domain),'removed handwritten DNS '+domain);
   });
-  test(script+' keeps AI choices and defaults for every region combination',()=>{
+  test(script+' offers five regions plus Proxies and Manual with US default for every region combination',()=>{
     const main=load(script);
     for(let mask=1;mask<32;mask++) {
       const regions=names.filter((_,index)=>mask&(1<<index));
       const c=main(regions);
-      const expected=[['新加坡','🇸🇬 SG'],['美国','🇺🇸 US'],['日本','🇯🇵 JP']].filter(([name])=>regions.includes(name)).map(([,group])=>group);
-      if(!expected.length)expected.push('REJECT');
-      expected.push('🧭 Manual');
+      const expected=[regions.includes('美国')?'🇺🇸 US':'REJECT',
+        ...[['香港','🇭🇰 HK'],['日本','🇯🇵 JP'],['新加坡','🇸🇬 SG'],['台湾','🇹🇼 TW']].filter(([name])=>regions.includes(name)).map(([,group])=>group),
+        '🚀 Proxies','🧭 Manual'];
       const ai=c['proxy-groups'].find(group=>group.name==='🤖 AI');
       assert.equal(ai.type,'select');
       assert.deepEqual(ai.proxies,expected);

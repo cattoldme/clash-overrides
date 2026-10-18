@@ -410,16 +410,11 @@ function main(config) {
   if (!autoNodes.length) autoNodes = nodes;
   autoNodes = Array.from(new Set(autoNodes));
 
-  // AI 优先新加坡、美国、日本，并允许手选；无匹配地区时默认拒绝。
-  const aiChoices = [];
-  if (Object.prototype.hasOwnProperty.call(byCountryGroups, "SG")) aiChoices.push(byCountryGroups.SG);
-  for (const code of ["US", "JP"]) {
-    if (Object.prototype.hasOwnProperty.call(byCountryGroups, code)) {
-      aiChoices.push(byCountryGroups[code]);
-    }
-  }
-  if (!aiChoices.length) aiChoices.push("REJECT");
-  aiChoices.push(GROUP.Manual);
+  // AI 默认美国，提供所有已生成地区、总代理和手选；无美国节点时默认拒绝。
+  const aiChoices = [byCountryGroups.US || "REJECT"].concat(
+    existing(byCountryGroups, ["HK", "JP", "SG", "TW"]).map((code) => byCountryGroups[code]),
+    [GROUP.Proxies, GROUP.Manual]
+  );
   const aiGroup = group(GROUP.AI, "select", aiChoices);
 
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
