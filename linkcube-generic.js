@@ -238,6 +238,8 @@ function buildRules(japanTarget, regionTargets) {
     ruleSet("Disney", GROUP.Streaming),
     ruleSet("HBO", GROUP.Streaming),
     ruleSet("Crunchyroll", GROUP.Streaming),
+    // NBC 等也使用此播放接口，保留总代理出口，避免跟随 Streaming 切换地区。
+    `DOMAIN,link.theplatform.com,${GROUP.Proxies}`,
     ruleSet("ParamountPlus", GROUP.Streaming),
     ruleSet("TikTok", GROUP.TikTok),
     ruleSet("Spotify", GROUP.Spotify),

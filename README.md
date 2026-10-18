@@ -67,6 +67,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
 - TikTok、Spotify 各自进入对应分组，地区组按连通性测速，不保证地区解锁。TikTok 使用上游维护名单，其中也包含 CapCut、Trae 等相关域名。
 - Streaming 分流六个平台：Netflix、Disney+、HBO Max、Prime Video、Crunchyroll、Paramount+，六者共用 Streaming 的出口选择。Netflix、Prime Video 使用 MetaCubeX 的域名名单；Disney、HBO、ParamountPlus 使用 blackmatrix7；Crunchyroll 使用 [liandu2024 的独立名单](https://github.com/liandu2024/clash/blob/main/list/Crunchyroll.list)。新增名单不借用整个 Sony、CBS 或通用代理大分类。
+- ParamountPlus 上游包含 NBC 等平台也使用的 `link.theplatform.com`。此共享播放接口固定跟随 Proxies，避免因切换 Streaming 地区误改 NBC 出口；Paramount+ 使用该接口时也跟随 Proxies，域名分流无法区分同一主机下的不同平台路径。用户自定义例外仍优先，其他 Paramount+ 专属域名继续走 Streaming。
 - Netflix、Prime Video 的名单避免将整个 AWS 区域、llnwd.net 或 media-amazon.com 后缀归入 Streaming；不再使用两者原 classical 名单的 IP/进程规则。实际播放仍需按自己的账号、客户端和节点验证。地方专属平台不因本次扩充加入 Streaming，日本服务等既有分流保留。
 - 已知平台进入相应分组；剩余目标进入 Final，默认代理。
 - 专用 BT 客户端的进程直连规则位于服务和国内域名规则之后，通用下载器按目标分流。
@@ -122,7 +123,7 @@ python scripts/build_flclash.py --check
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：159 项 Node 回归和 9 项 Python 检查通过，覆盖手写地区清单移除、六个 Streaming 平台、应用选项顺序、五项地区服务及全部 32 种地区有无组合下的缺节点处理、Hulu 美日名单交叉和自定义例外。地区服务版本此前通过 10 项隔离 Mihomo v1.19.32 配置检查；本次只删除手写地区规则，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：163 项 Node 回归和 9 项 Python 检查通过，覆盖手写地区清单移除、六个 Streaming 平台、应用选项顺序、五项地区服务及全部 32 种地区有无组合下的缺节点处理、Hulu 美日名单交叉、NBC 共享播放接口保留 Proxies 和自定义例外。地区服务版本此前通过 10 项隔离 Mihomo v1.19.32 配置检查；共享接口修复另做隔离内核规则命中验证，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 

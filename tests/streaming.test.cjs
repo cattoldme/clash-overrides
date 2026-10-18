@@ -19,7 +19,31 @@ function output(script,setup='') {
     name,type:'ss',server:'192.0.2.1',port:10000,cipher:'aes-128-gcm',password:'TEST-ONLY',
   })),dns:{enable:true}})));
 }
+// Evaluate generated domain rules against the unmodified upstream snapshot.
+function paramountRoute(config,host) {
+  const payload=fs.readFileSync(path.join(__dirname,'fixtures','paramountplus.yaml'),'utf8')
+    .split(/\r?\n/).map(line=>line.trim().replace(/^-\s*/,''));
+  const matches=([type,domain])=>host===domain ||
+    (type==='DOMAIN-SUFFIX' && host.endsWith('.'+domain));
+  return config.rules.find(rule=>{
+    const parts=rule.split(',');
+    return (['DOMAIN','DOMAIN-SUFFIX'].includes(parts[0]) && matches(parts)) ||
+      (parts[0]==='RULE-SET' && parts[1]==='ParamountPlus' &&
+        payload.some(line=>matches(line.split(','))));
+  })?.split(',')[2];
+}
 for(const script of ['linkcube-generic.js','flclash-single.js']) {
+  test(script+' keeps the NBC shared manifest host on Proxies while Paramount-only hosts use Streaming',()=>{
+    const c=output(script);
+    assert.equal(paramountRoute(c,'link.theplatform.com'),'🚀 Proxies');
+    for(const host of ['www.paramountplus.com','video.cbsaavideo.com','assets.pplusstatic.com','cbsi.live.ott.irdeto.com'])
+      assert.equal(paramountRoute(c,host),target,host);
+    assert.equal(paramountRoute(c,'example.theplatform.com'),undefined);
+  });
+  test(script+' lets a custom direct exception override the shared manifest host guard',()=>{
+    const c=output(script,'CUSTOM_DIRECT_DOMAINS.push("link.theplatform.com")');
+    assert.equal(paramountRoute(c,'link.theplatform.com'),'DIRECT');
+  });
   test(script+' routes exactly six streaming platforms before general platform and China rules',()=>{
     const c=output(script);
     assert.deepEqual(c.rules.filter(rule=>rule.split(',')[2]===target),
@@ -51,7 +75,7 @@ for(const [service,positive,negative] of [
     ['www.sony.com','example.akamaized.net','crunchyroll.com.example.org']],
   ['ParamountPlus',['www.paramountplus.com','video.cbsaavideo.com','assets.pplusstatic.com','link.theplatform.com'],
     ['www.cbsnews.com','example.theplatform.com','example.cloudfront.net','example.s3.us-west-2.amazonaws.com']],
-]) test(service+' upstream snapshot covers platform hosts without broad parent-company or CDN rules',()=>{
+]) test(service+' raw upstream snapshot includes platform/shared hosts without broad parent-company or CDN suffixes',()=>{
   const fixture=service==='Crunchyroll'?'crunchyroll.list':'paramountplus.yaml';
   const lines=fs.readFileSync(path.join(__dirname,'fixtures',fixture),'utf8').split(/\r?\n/)
     .map(line=>line.trim().replace(/^-\s*/,''))
