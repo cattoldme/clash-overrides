@@ -26,16 +26,16 @@ test('Google offers region groups like YouTube instead of individual nodes',()=>
   assert.deepEqual(google.proxies,youtube.proxies);
   assert(!google.proxies.some(name=>c.proxies.some(node=>node.name===name)));
 });
-test('Prime Video uses the maintained streaming rules before China and Global',()=>{
+test('Prime Video uses narrow maintained domain rules before China and Global',()=>{
   const c=output();
   const rule='RULE-SET,AmazonPrimeVideo,🎬 Streaming,no-resolve';
   assert(c.rules.includes(rule));
   assert(c.rules.indexOf(rule)<c.rules.indexOf('GEOSITE,cn,DIRECT'));
   assert(c.rules.indexOf(rule)<c.rules.indexOf('RULE-SET,Global,🚀 Proxies,no-resolve'));
   const provider=c['rule-providers'].AmazonPrimeVideo;
-  assert.equal(provider.behavior,'classical');
+  assert.equal(provider.behavior,'domain');
   assert.equal(provider.interval,86400);
-  assert.equal(provider.url,'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AmazonPrimeVideo/AmazonPrimeVideo.yaml');
+  assert.equal(provider.url,'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/primevideo.yaml');
 });
 function graph(config) {
   const groups = new Map(config['proxy-groups'].map(g => [g.name, g]));
@@ -259,3 +259,76 @@ for (const [service, name] of [['TikTok', '🎵 TikTok'], ['Spotify', '🎧 Spot
     }
   });
 }
+
+const privateProvider = {type:'inline',behavior:'domain',payload:['+.office.example']};
+test('DNS retains only providers referenced by preserved fake-IP and proxy-server policies',()=>{
+  const c=input();
+  c['rule-providers']={private:privateProvider,extra:{...privateProvider},unused:{...privateProvider}};
+  c.dns['fake-ip-filter-mode']='rule';
+  c.dns['fake-ip-filter']=['RULE-SET,private,real-ip','MATCH,fake-ip'];
+  c.dns['proxy-server-nameserver-policy']={'rule-set:private,extra':['192.0.2.53']};
+  const out=plain(load()(c));
+  assert.deepEqual(out['rule-providers'].private,privateProvider);
+  assert.deepEqual(out['rule-providers'].extra,privateProvider);
+  assert(!Object.hasOwn(out['rule-providers'],'unused'));
+  assert.deepEqual(plain(load()(plain(out))),out);
+});
+for(const kind of ['missing','collision','provider-old-group']) test('DNS rejects '+kind+' dependencies before modifying input',()=>{
+  const c=input();
+  const name=kind==='collision'?'Netflix':'private';
+  c.dns['fake-ip-filter-mode']='rule';
+  c.dns['fake-ip-filter']=['RULE-SET,'+name+',real-ip','MATCH,fake-ip'];
+  c['proxy-groups']=[{name:'OldGroup',type:'select',proxies:['DIRECT']}];
+  if(kind!=='missing') c['rule-providers']={[name]:{...privateProvider,...(kind==='provider-old-group'?{proxy:'OldGroup'}:{})}};
+  const before=plain(c);
+  assert.throws(()=>load()(c),/DNS|规则集|出口/);
+  assert.deepEqual(c,before);
+});
+for(const field of ['nameserver-policy','proxy-server-nameserver-policy']) {
+  for(const encoded of [false,true]) test('DNS rejects removed group in '+field+' encoded='+encoded+' before mutation',()=>{
+    const c=input();
+    c['proxy-groups']=[{name:'Old Group',type:'select',proxies:['DIRECT']}];
+    c.dns[field]={'office.example':'https://192.0.2.53/dns-query#'+(encoded?'Old%20Group':'Old Group')+'&h3=true'};
+    const before=plain(c);
+    assert.throws(()=>load()(c),/Old Group/);
+    assert.deepEqual(c,before);
+  });
+}
+test('DNS keeps real interface selectors and retained node exits',()=>{
+  const c=input();
+  c.dns['nameserver-policy']={'office.example':['https://192.0.2.53/dns-query#Ethernet&h3=true','udp://192.0.2.54#'+c.proxies[0].name]};
+  const expected=plain(c.dns['nameserver-policy']['office.example']);
+  assert.deepEqual(plain(load()(c)).dns['nameserver-policy']['office.example'],expected);
+});
+test('Netflix uses narrow maintained domain rules rather than shared AWS ranges',()=>{
+  const provider=output()['rule-providers'].Netflix;
+  assert.equal(provider.behavior,'domain');
+  assert.equal(provider.url,'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.yaml');
+  assert.equal(provider.path,'./ruleset/metacubex/netflix.yaml');
+});
+
+for(const mode of [undefined,'blacklist','whitelist']) test('DNS preserves domain-set filter dependency in '+mode,()=>{
+  const c=input();
+  if(mode) c.dns['fake-ip-filter-mode']=mode;
+  c.dns['fake-ip-filter']=['rule-set:private'];
+  c['rule-providers']={private:privateProvider};
+  const out=plain(load()(c));
+  assert.deepEqual(out['rule-providers'].private,privateProvider);
+  assert(out.dns['fake-ip-filter'].includes('rule-set:private'));
+});
+
+test('unused old providers may collide with rebuilt names without blocking ordinary subscriptions',()=>{
+  const c=input();
+  c['rule-providers']={SteamCN:privateProvider,GameDownload:privateProvider};
+  const out=plain(load()(c));
+  assert.notDeepEqual(out['rule-providers'].SteamCN,privateProvider);
+  assert.notDeepEqual(out['rule-providers'].GameDownload,privateProvider);
+});
+test('equivalent referenced built-in provider permits different YAML field order',()=>{
+  const c=output();
+  const entries=Object.entries(c['rule-providers'].Netflix).reverse();
+  c['rule-providers'].Netflix=Object.fromEntries(entries);
+  c.dns['fake-ip-filter-mode']='rule';
+  c.dns['fake-ip-filter']=['RULE-SET,Netflix,real-ip','MATCH,fake-ip'];
+  assert.doesNotThrow(()=>load()(c));
+});

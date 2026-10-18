@@ -62,8 +62,6 @@ const BLACKMATRIX7_RULESETS = [
   "Niconico",
   "TVer",
   "YouTube",
-  "AmazonPrimeVideo",
-  "Netflix",
   "Disney",
   "HBO",
   "TikTok",
@@ -116,7 +114,7 @@ function buildRuleProviders() {
   const providers = {};
   for (const name of BLACKMATRIX7_RULESETS) {
     // 这些项目的基础文件并非完整 classical；其余沿用原有维护源。
-    const file = ["Apple", "Global", "Netflix"].indexOf(name) >= 0
+    const file = ["Apple", "Global"].indexOf(name) >= 0
       ? `${name}_Classical` : name;
     providers[name] = {
       type: "http",
@@ -126,6 +124,15 @@ function buildRuleProviders() {
       path: `./ruleset/blackmatrix7/${file}.yaml`,
       interval: 86400,
       proxy: GROUP.Proxies,
+    };
+  }
+  // 域名名单避免将共享 AWS 区域、CDN 整个后缀归入流媒体。
+  for (const [name, category] of [["Netflix", "netflix"], ["AmazonPrimeVideo", "primevideo"]]) {
+    providers[name] = {
+      type: "http", behavior: "domain", format: "yaml",
+      url: `https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/${category}.yaml`,
+      path: `./ruleset/metacubex/${category}.yaml`,
+      interval: 86400, proxy: GROUP.Proxies,
     };
   }
   // Sukka maintains a dedicated game-content CDN list, including Steam depots.
@@ -310,6 +317,60 @@ function configureDns(config) {
   }
 }
 
+function retainDnsDependencies(config, dns, groups, providers) {
+  if (!dns || typeof dns !== "object" || Array.isArray(dns) || dns.enable === false) return;
+  const oldGroups = new Set((config["proxy-groups"] || []).map((entry) => entry.name));
+  const targets = new Set(groups.map((entry) => entry.name).concat(config.proxies.map((entry) => entry.name)));
+  function checkExit(name) {
+    if (oldGroups.has(name) && !targets.has(name) && name !== "DIRECT" && name !== "REJECT") {
+      throw new Error(`DNS 出口 ${name} 引用将被删除的旧策略组，请先迁移该出口`);
+    }
+  }
+  const needed = new Set();
+  for (const field of ["nameserver-policy", "proxy-server-nameserver-policy"]) {
+    const policy = dns[field] || {};
+    for (const key of Object.keys(policy)) {
+      if (field === "proxy-server-nameserver-policy" && key.startsWith("rule-set:")) {
+        for (const name of key.slice(9).split(",")) needed.add(name);
+      }
+      const servers = Array.isArray(policy[key]) ? policy[key] : [policy[key]];
+      for (const server of servers) {
+        if (typeof server !== "string") continue;
+        const fragment = server.split("#")[1] || "";
+        for (const part of fragment.split("&")) {
+          if (part && part.indexOf("=") < 0) checkExit(decodeURIComponent(part));
+        }
+      }
+    }
+  }
+  if (dns["enhanced-mode"] === "fake-ip") {
+    for (const rule of dns["fake-ip-filter"] || []) {
+      if (dns["fake-ip-filter-mode"] === "rule") {
+        const parts = rule.split(",");
+        if (parts[0] === "RULE-SET") needed.add(parts[1]);
+      } else if (rule.startsWith("rule-set:")) {
+        for (const name of rule.slice(9).split(",")) needed.add(name);
+      }
+    }
+  }
+  const previous = config["rule-providers"] || {};
+  for (const name of needed) {
+    if (Object.prototype.hasOwnProperty.call(providers, name)) {
+      if (Object.prototype.hasOwnProperty.call(previous, name)
+          && (Object.keys(previous[name]).length !== Object.keys(providers[name]).length
+            || Object.keys(providers[name]).some((key) => JSON.stringify(previous[name][key]) !== JSON.stringify(providers[name][key])))) {
+        throw new Error(`DNS 规则集 ${name} 与内置规则集重名，请先重命名自定义规则集`);
+      }
+      continue;
+    }
+    if (!Object.prototype.hasOwnProperty.call(previous, name)) {
+      throw new Error(`DNS 引用缺失的规则集 ${name}，请先补齐该规则集`);
+    }
+    if (previous[name].proxy) checkExit(previous[name].proxy);
+    providers[name] = previous[name];
+  }
+}
+
 function main(config) {
   // 空输入、provider-only 和混合订阅不重建，避免丢掉 provider 中的节点。
   if (!config || typeof config !== "object" || !Array.isArray(config.proxies)) return config;
@@ -370,7 +431,7 @@ function main(config) {
   const usDefaultChoices = [byCountryGroups.US || "REJECT"]
     .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Manual]);
   const proxyChoices = [GROUP.Auto, GROUP.Fallback].concat(countryChoices, [GROUP.Manual, "DIRECT"]);
-  config["proxy-groups"] = [
+  const groups = [
     group(GROUP.Proxies, "select", proxyChoices),
     aiGroup,
     group(GROUP.TikTok, "select", usDefaultChoices.slice()),
@@ -392,9 +453,16 @@ function main(config) {
     group(GROUP.Manual, "select", nodes),
   ].concat(countryGroups);
 
-  config["rule-providers"] = buildRuleProviders();
+  const providers = buildRuleProviders();
+  const dnsConfig = { dns: config.dns && typeof config.dns === "object" && !Array.isArray(config.dns)
+    ? Object.assign({}, config.dns) : config.dns };
+  configureDns(dnsConfig);
+  // 先检查保留字段的依赖，错误输入不能留下已修改一半的配置。
+  retainDnsDependencies(config, dnsConfig.dns, groups, providers);
+  config["proxy-groups"] = groups;
+  config["rule-providers"] = providers;
   // 缺少日本节点时改走总代理，避免引用不存在的地区组。
   config.rules = buildRules(byCountryGroups.JP || GROUP.Proxies);
-  configureDns(config);
+  if (config.dns) config.dns = dnsConfig.dns;
   return config;
 }

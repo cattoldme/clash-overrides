@@ -75,6 +75,22 @@ class MergeTests(unittest.TestCase):
         self.assertNotIn('enable', out['tun'])
         self.assertTrue(out['dns']['direct-nameserver-follow-policy'])
 
+    def test_streaming_snapshots_cover_platforms_without_shared_cloud_suffixes(self):
+        for category, positive, negative in [
+            ('netflix', ['www.netflix.com', 'video.nflxvideo.net'],
+             ['amzn-s3-demo-bucket.s3.us-west-2.amazonaws.com', 'cdn.cookielaw.org', 'cdn.onetrust.com']),
+            ('primevideo', ['www.primevideo.com', 'video.aiv-cdn.net'],
+             ['m.media-amazon.com', 'example.llnwd.net', 'example.cloudfront.net']),
+        ]:
+            rules = yaml.safe_load((ROOT/'tests'/'fixtures'/(category+'.yaml')).read_text(encoding='utf-8'))['payload']
+            def matches(host):
+                return any(host == rule or (rule.startswith('+.') and
+                           (host == rule[2:] or host.endswith(rule[1:]))) for rule in rules)
+            for host in positive:
+                self.assertTrue(matches(host), host)
+            for host in negative:
+                self.assertFalse(matches(host), host)
+
     def test_standalone_matches_the_two_file_output(self):
         fixture = {'mode': 'rule', 'mixed-port': 7890,
                    'hosts': {'router.lan': '192.0.2.2'},
