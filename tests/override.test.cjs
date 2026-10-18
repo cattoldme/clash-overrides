@@ -23,7 +23,8 @@ test('Google offers region groups like YouTube instead of individual nodes',()=>
   const google=c['proxy-groups'].find(g=>g.name==='🔎 Google');
   const youtube=c['proxy-groups'].find(g=>g.name==='📺 YouTube');
   assert.equal(google.type,'select');
-  assert.deepEqual(google.proxies,youtube.proxies);
+  assert.deepEqual(google.proxies,['🚀 Proxies','🇭🇰 HK','🇯🇵 JP','🇸🇬 SG','🇺🇸 US','🇹🇼 TW','🧭 Manual']);
+  assert.deepEqual(new Set(google.proxies),new Set(youtube.proxies));
   assert(!google.proxies.some(name=>c.proxies.some(node=>node.name===name)));
 });
 test('Prime Video uses narrow maintained domain rules before China and Global',()=>{

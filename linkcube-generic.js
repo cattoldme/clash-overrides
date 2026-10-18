@@ -408,6 +408,8 @@ function main(config) {
   }
 
   const commonRegions = existing(byCountryNodes, ["HK", "JP", "SG", "US", "TW"]);
+  // 五个地区已有独立组，手选仅列出其余节点。
+  const manualNodes = nodes.filter((name) => !commonRegions.some((code) => byCountryNodes[code].includes(name)));
   let autoNodes = [];
   for (const code of commonRegions) autoNodes = autoNodes.concat(byCountryNodes[code]);
   if (!autoNodes.length) autoNodes = nodes;
@@ -423,20 +425,20 @@ function main(config) {
     group(GROUP.TikTok, "select", serviceChoices.slice()),
     group(GROUP.Spotify, "select", serviceChoices.slice()),
     group(GROUP.Streaming, "select", serviceChoices.slice()),
-    group(GROUP.YouTube, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
-    group(GROUP.Telegram, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
-    group(GROUP.Google, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
-    group(GROUP.GitHub, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "JP", "SG", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual, "DIRECT"])),
-    group(GROUP.Steam, "select", [GROUP.Proxies, "DIRECT"].concat(existing(byCountryGroups, ["HK", "JP", "US", "SG"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
-    group(GROUP.Bilibili, "select", ["DIRECT"].concat(existing(byCountryGroups, ["TW", "HK"]).map((code) => byCountryGroups[code]), [GROUP.Proxies])),
-    group(GROUP.Bahamut, "select", existing(byCountryGroups, ["TW", "HK", "JP"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
+    group(GROUP.YouTube, "select", serviceChoices.slice()),
+    group(GROUP.Telegram, "select", serviceChoices.slice()),
+    group(GROUP.Google, "select", serviceChoices.slice()),
+    group(GROUP.GitHub, "select", serviceChoices.slice()),
+    group(GROUP.Steam, "select", serviceChoices.slice()),
+    group(GROUP.Bilibili, "select", ["DIRECT"].concat(existing(byCountryGroups, ["TW", "HK", "SG"]).map((code) => byCountryGroups[code]), [GROUP.Proxies, GROUP.Manual])),
+    group(GROUP.Bahamut, "select", existing(byCountryGroups, ["TW", "HK"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
     group(GROUP.Microsoft, "select", ["DIRECT", GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "JP", "SG", "US"]).map((code) => byCountryGroups[code]))),
     group(GROUP.Apple, "select", ["DIRECT", GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "JP", "SG", "US"]).map((code) => byCountryGroups[code]))),
     group(GROUP.PayPal, "select", ["DIRECT", GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "US", "SG"]).map((code) => byCountryGroups[code]))),
     group(GROUP.Final, "select", [GROUP.Proxies, "DIRECT", GROUP.Manual]),
     group(GROUP.Auto, "url-test", autoNodes, 300, 80),
     group(GROUP.Fallback, "fallback", autoNodes, 300),
-    group(GROUP.Manual, "select", nodes),
+    group(GROUP.Manual, "select", manualNodes.length ? manualNodes : ["REJECT"]),
   ].concat(countryGroups);
 
   const providers = buildRuleProviders();

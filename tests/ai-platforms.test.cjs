@@ -15,6 +15,42 @@ function load(script,setup='') {
   })));
 }
 for(const script of ['linkcube-generic.js','flclash-single.js']) {
+  test(script+' keeps only nodes outside the five regions in Manual and rejects an empty selection',()=>{
+    const main=load(script);
+    for(let mask=0;mask<32;mask++) {
+      const regional=names.filter((_,index)=>mask&(1<<index));
+      for(const other of [['德国','澳大利亚'],[]]) {
+        if(!regional.length && !other.length)continue;
+        const c=main([...regional,...other]);
+        const manual=c['proxy-groups'].find(group=>group.name==='🧭 Manual');
+        assert.equal(manual.type,'select');
+        assert.deepEqual(manual.proxies,other.length?other:['REJECT'],'mask '+mask);
+        for(const [name,group] of [['香港','🇭🇰 HK'],['日本','🇯🇵 JP'],['新加坡','🇸🇬 SG'],['美国','🇺🇸 US'],['台湾','🇹🇼 TW']]) {
+          const region=c['proxy-groups'].find(item=>item.name===group);
+          if(regional.includes(name))assert.deepEqual(region.proxies,[name]);
+          else assert.equal(region,undefined);
+        }
+      }
+    }
+    const aliases=['🇭🇰 Hong Kong 01','JP Tokyo','SG Singapore','US Seattle','TW Taipei','DE Frankfurt','AU Sydney'];
+    assert.deepEqual(main(aliases)['proxy-groups'].find(group=>group.name==='🧭 Manual').proxies,
+      ['DE Frankfurt','AU Sydney']);
+  });
+  test(script+' filters Bahamut and Bilibili regions while retaining Proxies and Manual for every combination',()=>{
+    const main=load(script);
+    for(let mask=0;mask<32;mask++) {
+      const regions=mask?names.filter((_,index)=>mask&(1<<index)):['德国'];
+      const c=main(regions);
+      const choices=codes=>codes.filter(([name])=>regions.includes(name)).map(([,group])=>group);
+      const bahamut=[...choices([['台湾','🇹🇼 TW'],['香港','🇭🇰 HK']]),'🚀 Proxies','🧭 Manual'];
+      const bilibili=['DIRECT',...choices([['台湾','🇹🇼 TW'],['香港','🇭🇰 HK'],['新加坡','🇸🇬 SG']]),'🚀 Proxies','🧭 Manual'];
+      for(const [name,expected] of [['🎞️ Bahamut',bahamut],['📺 Bilibili',bilibili]]) {
+        const group=c['proxy-groups'].find(group=>group.name===name);
+        assert.equal(group.type,'select');
+        assert.deepEqual(group.proxies,expected,name+' mask '+mask);
+      }
+    }
+  });
   test(script+' uses only four maintained AI categories for routing and DNS',()=>{
     const c=load(script)(names);
     assert.deepEqual(c.rules.filter(rule=>rule.endsWith(',🤖 AI')),categories.map(name=>'GEOSITE,'+name+',🤖 AI'));
@@ -27,7 +63,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
     for(const domain of ['claude.ai','anthropic.com','gemini.google.com','generativelanguage.googleapis.com','copilot.microsoft.com','sydney.bing.com','openaimerge.com'])
       assert(!Object.hasOwn(policy,'+.'+domain),'removed handwritten DNS '+domain);
   });
-  test(script+' gives AI, TikTok, Spotify and Streaming proxy-first choices for every region combination',()=>{
+  test(script+' gives AI, TikTok, Spotify, Streaming, YouTube, Telegram, Google, GitHub and Steam proxy-first choices for every region combination',()=>{
     const main=load(script);
     for(let mask=0;mask<32;mask++) {
       const regions=mask?names.filter((_,index)=>mask&(1<<index)):['德国'];
@@ -35,7 +71,7 @@ for(const script of ['linkcube-generic.js','flclash-single.js']) {
       const expected=['🚀 Proxies',
         ...[['香港','🇭🇰 HK'],['日本','🇯🇵 JP'],['新加坡','🇸🇬 SG'],['美国','🇺🇸 US'],['台湾','🇹🇼 TW']].filter(([name])=>regions.includes(name)).map(([,group])=>group),
         '🧭 Manual'];
-      for(const name of ['🤖 AI','🎵 TikTok','🎧 Spotify','🎬 Streaming']) {
+      for(const name of ['🤖 AI','🎵 TikTok','🎧 Spotify','🎬 Streaming','📺 YouTube','✈️ Telegram','🔎 Google','🐙 GitHub','🎮 Steam']) {
         const group=c['proxy-groups'].find(group=>group.name===name);
         assert.equal(group.type,'select');
         assert.deepEqual(group.proxies,expected,name);
