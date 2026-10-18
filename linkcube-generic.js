@@ -367,12 +367,14 @@ function main(config) {
   const aiGroup = group(GROUP.AI, "select", aiChoices);
 
   const countryChoices = ["HK", "JP", "SG", "US", "TW"].filter((code) => Object.prototype.hasOwnProperty.call(byCountryGroups, code)).map((code) => byCountryGroups[code]);
+  const usDefaultChoices = [byCountryGroups.US || "REJECT"]
+    .concat(countryChoices.filter((name) => name !== GROUP.US), [GROUP.Manual]);
   const proxyChoices = [GROUP.Auto, GROUP.Fallback].concat(countryChoices, [GROUP.Manual, "DIRECT"]);
   config["proxy-groups"] = [
     group(GROUP.Proxies, "select", proxyChoices),
     aiGroup,
-    group(GROUP.TikTok, "select", [byCountryGroups.US || "REJECT", GROUP.Manual]),
-    group(GROUP.Spotify, "select", [byCountryGroups.US || "REJECT", GROUP.Manual]),
+    group(GROUP.TikTok, "select", usDefaultChoices.slice()),
+    group(GROUP.Spotify, "select", usDefaultChoices.slice()),
     group(GROUP.Streaming, "select", existing(byCountryGroups, ["SG", "US", "HK", "JP", "TW"]).map((code) => byCountryGroups[code]).concat([GROUP.Proxies, GROUP.Manual])),
     group(GROUP.YouTube, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US", "TW"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
     group(GROUP.Telegram, "select", [GROUP.Proxies].concat(existing(byCountryGroups, ["HK", "SG", "JP", "US"]).map((code) => byCountryGroups[code]), [GROUP.Manual])),
