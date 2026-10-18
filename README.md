@@ -61,7 +61,7 @@ FlClash 会在生成最终配置时回写部分客户端设置，脚本无法保
 - Steam 商店、社区和明确的网页例外进入 Steam 组；已知游戏下载 CDN 直连。未将整个 Steam 进程强制直连。
 - 日本服务进入日本组；无日本节点时回退到总代理。
 - Google 与 YouTube 一样，提供总代理、现有地区组和手动组供选择，不再直接列出全部单节点。
-- TikTok、Spotify 各有独立分组，默认选择美国组，不跟随日常总代理或 Streaming。无美国节点时默认 REJECT，可通过 Manual 手动选择；美国组按连通性测速，不保证地区解锁。TikTok 使用上游维护名单，其中也包含 CapCut、Trae 等相关域名。
+- TikTok、Spotify 各有独立分组，默认选择美国组，不跟随日常总代理或 Streaming。选择项包含所有已生成的地区组和 Manual 手动组，美国排在首位；无美国节点时默认 REJECT，仍可切换其他地区或通过 Manual 手动选择；美国组按连通性测速，不保证地区解锁。TikTok 使用上游维护名单，其中也包含 CapCut、Trae 等相关域名。
 - Prime Video 与 Netflix、Disney、HBO 一并进入 Streaming 组；Prime Video 使用独立的上游维护名单。
 - 已知平台进入相应分组；剩余目标进入 Final，默认代理。
 - 专用 BT 客户端的进程直连规则位于服务和国内域名规则之后，通用下载器按目标分流。
@@ -111,7 +111,7 @@ python scripts/build_flclash.py --check
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。
 
-本次检查：73 项通用 Node 回归、9 项单文件 Node 回归和 8 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次新增分流尚未进行内核及实际联网验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：75 项通用 Node 回归、9 项单文件 Node 回归和 8 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次新增分流尚未进行内核及实际联网验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 
