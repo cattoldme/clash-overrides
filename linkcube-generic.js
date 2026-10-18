@@ -306,8 +306,8 @@ function configureDns(config) {
       ipcidr: ["240.0.0.0/4", "0.0.0.0/32", "127.0.0.0/8"],
     },
   });
-  if (dns["enhanced-mode"] === "fake-ip"
-      && (!dns["fake-ip-filter-mode"] || dns["fake-ip-filter-mode"] === "blacklist")) {
+  if ((dns["enhanced-mode"] || "").toLowerCase() === "fake-ip"
+      && (dns["fake-ip-filter-mode"] || "blacklist").toLowerCase() === "blacklist") {
     const current = Array.isArray(dns["fake-ip-filter"]) ? dns["fake-ip-filter"] : [];
     dns["fake-ip-filter"] = Array.from(new Set(current.concat(
       LAN_DOMAINS.map((domain) => `+.${domain}`),
@@ -344,9 +344,9 @@ function retainDnsDependencies(config, dns, groups, providers) {
       }
     }
   }
-  if (dns["enhanced-mode"] === "fake-ip") {
+  if ((dns["enhanced-mode"] || "").toLowerCase() === "fake-ip") {
     for (const rule of dns["fake-ip-filter"] || []) {
-      if (dns["fake-ip-filter-mode"] === "rule") {
+      if ((dns["fake-ip-filter-mode"] || "blacklist").toLowerCase() === "rule") {
         const parts = rule.split(",").map((part) => part.trim());
         if (parts[0].toUpperCase() === "RULE-SET") needed.add(parts[1]);
       } else if (/^rule-set:/i.test(rule)) {

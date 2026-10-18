@@ -92,7 +92,7 @@ JS 开头的 `CUSTOM_DIRECT_DOMAINS` 和 `CUSTOM_PROXY_DOMAINS` 默认为空。
 ## 兼容范围与回滚
 
 - 仅重建直接在 `proxies` 中提供节点的订阅。纯 `proxy-providers` 和混合 provider 输入原样返回，没有实现其策略重建。
-- 节点协议、服务器、端口和凭据不改；策略组、规则集和路由规则会重建。Fake-IP 过滤项及 proxy-server-nameserver-policy 引用的规则集会按需保留；DNS 关闭时也保留内核仍需解析的依赖（包括原 nameserver-policy）。规则类型及 selector 前缀按内核语义忽略大小写，RULE-SET 的逗号字段会修剪空格，规则集名称本身保留大小写。缺失依赖、与内置规则集重名冲突，或保留的 DNS/规则集下载出口引用已删除的旧组时，会在修改配置前报错；请先迁移对应依赖。真实网卡名和仍保留的节点出口不受影响。
+- 节点协议、服务器、端口和凭据不改；策略组、规则集和路由规则会重建。Fake-IP 过滤项及 proxy-server-nameserver-policy 引用的规则集会按需保留；DNS 关闭时也保留内核仍需解析的依赖（包括原 nameserver-policy）。DNS 模式、规则类型及 selector 前缀按内核语义忽略大小写，RULE-SET 的逗号字段会修剪空格，规则集名称本身保留大小写。缺失依赖、与内置规则集重名冲突，或保留的 DNS/规则集下载出口引用已删除的旧组时，会在修改配置前报错；请先迁移对应依赖。真实网卡名和仍保留的节点出口不受影响。
 - 重名节点、与生成分组重名的节点、依赖旧订阅组的 `dialer-proxy` 会报错，应先解决输入冲突。
 - 全局 IPv6、TUN 开关、端口和系统代理仍由客户端管理；配套 YAML 的 DNS IPv6 默认为关闭。其他设备按自己的环境决定客户端开关。
 - 出现问题时恢复自己的两份扩展备份，重新激活订阅，并检查分组选择。
@@ -112,7 +112,7 @@ python scripts/build_flclash.py --check
 
 Node 测试只使用内置模块；Python 测试需要 PyYAML。流媒体名单范围测试使用 tests/fixtures 中的离线快照；运行时仍按上游最新名单更新，快照不能保证未来上游范围不变。
 
-本次检查：119 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
+本次检查：135 项 Node 回归和 9 项 Python 检查通过。此前版本使用测试节点完成过 Mihomo v1.19.32 配置检查；本次针对 DNS 依赖和流媒体域名名单完成 10 项隔离的 Mihomo v1.19.32 配置检查，未进行完整客户端及实际播放验收。离线测试使用文档专用 IP 和 `TEST-ONLY` 假密码，没有可用节点。
 
 维护者修改通用 JS 或 YAML 后，运行 `python scripts/build_flclash.py` 重新生成 `flclash-single.js`，再执行以上检查并一并提交。生成器只在本地构建时需要 PyYAML；设备导入后的单文件不需要 Python、模块加载或在线下载另一份脚本。
 

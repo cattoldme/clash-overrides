@@ -66,3 +66,24 @@ for(const field of ['nameserver-policy','proxy-server-nameserver-policy']) {
     assert.deepEqual(out.dns,before);
   });
 }
+
+for(const script of ['linkcube-generic.js','flclash-single.js']) {
+  for(const enabled of [true,false]) {
+    for(const [enhanced,mode,rule] of [
+      ['FAKE-IP','rule','RULE-SET,Private,real-ip'],
+      ['fake-ip','RULE','RULE-SET,Private,real-ip'],
+      ['FaKe-Ip','BlAcKlIsT','RULE-SET:Private'],
+      ['FAKE-IP','WHITELIST','RULE-SET:Private'],
+    ]) test(script+' keeps '+enhanced+'/'+mode+' dependencies with DNS '+enabled,()=>{
+      const c=input();
+      c.dns.enable=enabled;
+      c.dns['enhanced-mode']=enhanced;
+      c.dns['fake-ip-filter-mode']=mode;
+      c.dns['fake-ip-filter']=[rule,...(mode.toLowerCase()==='rule'?['MATCH,fake-ip']:[])];
+      const before=plain(c.dns);
+      const out=load(script)(c);
+      assert.deepEqual(out['rule-providers'].Private,provider);
+      if(script==='linkcube-generic.js' && !enabled) assert.deepEqual(out.dns,before);
+    });
+  }
+}
