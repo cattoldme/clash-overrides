@@ -53,15 +53,17 @@ https://raw.githubusercontent.com/cattoldme/clash-overrides/main/flclash-mobile.
 
 `lazy: true` 不会阻止启动首次测速；手机关闭统一延迟可减少第二次 HEAD 请求，延长 Auto 周期会让部分静默故障更晚被发现。延长更新周期会牺牲名单新鲜度，也不保证只在 Wi-Fi 或充电时更新。实际续航需实机对照，不承诺省电比例。本次核对的 Mihomo v1.19.32 Android 实现已禁用 TCP keepalive，不能把单独延长其间隔算作省电收益；FlClash 实际核心仍需核对。
 
-**TUN 的 TCP DNS 接管需要显式客户端覆写：**
+**TUN DNS 接管：Windows 与 Android 分别核对。**
 
-1. 在 FlClash 的 TUN 配置中找到 DNS 接管（`dns-hijack`），显式选择该字段的覆写，不只填写脚本。
-2. 列表中同时保留 `any:53` 和 `tcp://any:53`，重新应用配置。
-3. 检查最终配置预览中的 `tun.dns-hijack` 确实有这两项，并核对上表中的统一延迟和地理数据更新周期。
+以下按 FlClash v0.9.2 及其固定核心实现核对：
 
-v0.9.1 默认会把 `dns-hijack` 重设为只有 `any:53`；未显式选择覆写时，脚本里的 TCP 项会被移除。UDP/TCP 53 接管不包含 DoH/DoT；Windows 内网 DNS、Android 私人 DNS 也存在接管边界，不能据此声称全面防 DNS 泄漏。端口、全局 IPv6、TUN 开关仍按自己的客户端设置；Android DNS 监听地址可能由安全模式调整。让 AI/内网 DNS 策略及 Fake-IP 兼容项在最终配置中保留。
+- Windows：核心解析 `dns-hijack` 时只保留地址和端口，TCP、UDP 使用同一匹配判断。单项 `any:53` 已匹配进入 TUN 的 TCP/UDP 53 请求，额外添加 `tcp://any:53` 不是必要条件。脚本现有两项仍兼容，但不会增加协议覆盖。
+- v0.9.2 生成配置时默认把该字段设为 `any:53`；需要自定义接管目标时才显式选择该字段覆写。预览只剩这一项，不代表 TCP DNS 没有接管。
+- Android：VPN 通过独立的 DNS 接管开关与参数构造 TUN 接管列表。不能仅凭配置预览中 `tun.dns-hijack` 的内容判断实际 VPN 接管；应结合客户端 VPN 设置和实际流量验证。
 
-依据：[脚本导入入口](https://github.com/chen08209/FlClash/blob/8d4f9744948751f1273fe871e1d05276fac09b0e/lib/views/config/scripts.dart)、[最终配置生成](https://github.com/chen08209/FlClash/blob/8d4f9744948751f1273fe871e1d05276fac09b0e/lib/common/task.dart)、[TUN 字段覆写界面](https://github.com/chen08209/FlClash/blob/8d4f9744948751f1273fe871e1d05276fac09b0e/lib/views/config/tun.dart)、[Mihomo TUN 边界](https://wiki.metacubex.one/config/inbound/tun/)。
+UDP/TCP 53 接管不包含 DoH/DoT，也不涵盖未进入 TUN/VPN 的流量。Windows 内网 DNS、Android 私人 DNS及 VPN 分应用绕过存在接管边界，不能据此声称全面防 DNS 泄漏。端口、全局 IPv6、TUN 开关仍按自己的客户端设置；Android DNS 监听地址可能由安全模式调整。让 AI/内网 DNS 策略及 Fake-IP 兼容项在最终配置中保留，并核对上表中的统一延迟和地理数据更新周期。
+
+依据：[v0.9.2 最终配置生成](https://github.com/chen08209/FlClash/blob/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7/lib/common/task.dart#L211-L228)、[核心接管地址解析](https://github.com/chen08209/Clash.Meta/blob/c5062921054902b25215a6a933e72ccd714c9bfa/listener/sing_tun/server.go#L283-L295)、[TCP/UDP 共用匹配](https://github.com/chen08209/Clash.Meta/blob/c5062921054902b25215a6a933e72ccd714c9bfa/listener/sing_tun/dns.go#L21-L40)、[Android VPN DNS 参数](https://github.com/chen08209/FlClash/blob/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7/android/service/src/main/java/com/follow/clash/service/VpnService.kt#L77-L89)、[Android TUN 构造](https://github.com/chen08209/FlClash/blob/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7/core/tun/tun.go#L62-L95)。
 
 两版从同一源码生成，并有分流等价及隔离内核回归；尚未在 FlClash Android/Windows 客户端完成本批变更的实际联网和续航验收。其他设备需验证自己的节点、最终 DNS 和常用应用。
 
